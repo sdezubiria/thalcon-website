@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thalcon — On-site ready-mix concrete</title>
+  <meta name="description" content="A complete ready-mix operation, set up on your site and dedicated to your pours.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@600;800&family=Inclusive+Sans:wght@300;400;500;600&family=Poppins:wght@600;800&family=Sometype+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="is-loading">
+
+  <!-- Loader: the brand mark draws in, then its three bars stretch into the header stripes -->
+  <div class="loader" aria-hidden="true">
+    <svg class="loader__svg"></svg>
+    <div class="loader__pct"><span class="loader__num">0</span>&thinsp;%</div>
+  </div>
+
+  <header class="hdr" data-theme="light">
+    <div class="hdr__stripes" aria-hidden="true">
+      <span class="stripe stripe--1"></span>
+      <span class="stripe stripe--2"></span>
+      <span class="stripe stripe--3"></span>
+    </div>
+    <a class="hdr__logo" href="#top" aria-label="Thalcon — back to top">
+      <svg viewBox="0 0 340 25" fill="currentColor" aria-hidden="true"><use href="#logo-paths"/></svg>
+    </a>
+    <nav class="hdr__nav" aria-label="Primary">
+      <a href="#offer" data-nav="offer">Our offer</a>
+      <a href="#sustainability" data-nav="sustainability">Sustainability</a>
+      <a href="#innovation" data-nav="innovation">Innovation</a>
+      <a href="#careers" data-nav="careers">Career</a>
+      <a href="#contact" data-nav="contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- HERO — pinned; the video frame opens to full screen and pushes into the plant -->
+    <section class="hero scene" id="top" data-scene="hero">
+      <div class="scene__stage hero__stage">
+        <div class="hero__row">
+          <span class="hero__logo-slot" aria-hidden="true"></span>
+          <p class="hero__tagline" data-split>Speed is our foundation. The results are concrete</p>
+          <div class="hero__cue" aria-hidden="true">
+            <span class="label">Scroll</span>
+            <span class="hero__cue-track"><span class="hero__cue-dot"></span></span>
+          </div>
+        </div>
+        <div class="hero__media">
+          <div class="hero__media-inner">
+            <video class="hero__video" muted playsinline loop autoplay preload="metadata" poster="assets/img/aerial-plant.jpg">
+              <source src="assets/video/thalcon-hero.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTRO -->
+    <section class="intro">
+      <span class="rule rule--draw" aria-hidden="true"></span>
+      <div class="intro__grid">
+        <h1 class="intro__title" data-split>Let’s Build the Infrastructure Behind the Infrastructure</h1>
+        <p class="intro__lede" data-reveal>A complete ready-mix operation, set up on your site and dedicated to your pours.</p>
+      </div>
+    </section>
+
+    <!-- CLOCK — pinned; the rule turns counter-clockwise like a clock hand and wipes in the next statement -->
+    <section class="clock scene" data-scene="clock">
+      <div class="scene__stage clock__stage">
+        <canvas class="clock__dial" aria-hidden="true"></canvas>
+        <p class="label clock__label">about</p>
+        <div class="clock__field">
+          <p class="clock__text clock__text--a" data-words>We are built specifically for large-scale construction projects. A fully operational ready-mix plant on your job site, with the trucks and crew to run it at the production rate it takes to pull your schedule forward.</p>
+          <p class="clock__text clock__text--b">Every competitor manages the 90-minute clock with better dispatch software. <span class="nowrap">We remove the clock.</span></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- OUR OFFER — illustrations pinned left, morphing between the three pillars -->
+    <section class="offer" id="offer" data-theme="dark">
+      <div class="offer__grid">
+        <aside class="offer__aside">
+          <div class="offer__sticky">
+            <div class="offer__meta">
+              <p class="label">our offer</p>
+              <p class="label offer__count" aria-hidden="true"><span class="offer__count-strip"><span>01</span><span>02</span><span>03</span></span></p>
+            </div>
+            <span class="offer__rule" aria-hidden="true"><span class="offer__rule-fill"></span></span>
+            <div class="illo" aria-hidden="true"><svg class="illo__svg" viewBox="-4 -4 368 330"></svg></div>
+          </div>
+        </aside>
+
+        <div class="offer__content">
+          <article class="pillar" data-pillar="0">
+            <h2 class="pillar__title" data-split>Mobility</h2>
+            <p class="pillar__lede" data-reveal>We set up a mobile batch plant on the job site and produce concrete on demand. Every load travels minutes from plant to pour, so the 90-minute batch-to-discharge window never comes into play. This is how it works:</p>
+            <ul class="pillar__list" data-reveal-list>
+              <li><strong>Mobilize:</strong> Our trucks bring the plant and crew. It sets up on hydraulic outriggers, with no foundation, in about an acre.</li>
+              <li><strong>Pour:</strong> Our crew runs the plant on your schedule, with batch records for every load and QC testing tailored to your project.</li>
+              <li><strong>Move On:</strong> When the job’s done, we break down and leave no permanent footprint.</li>
+            </ul>
+          </article>
+
+          <article class="pillar" data-pillar="1">
+            <h2 class="pillar__title" data-split>Scalability</h2>
+            <p class="pillar__lede" data-reveal>The buildout is national, and our reach follows it. Hub-and-spoke material sourcing keeps each plant fed wherever the job lands, so the only limit on growth is the size of our fleet.</p>
+            <ul class="pillar__list" data-reveal-list>
+              <li>Hub-and-spoke cement, SCM and aggregate supply</li>
+              <li>Redundant suppliers secured ahead of demand</li>
+              <li>Two pours of material staged on site before batching starts</li>
+              <li>Up to 196 CY/hr rated output per plant</li>
+            </ul>
+          </article>
+
+          <article class="pillar" data-pillar="2">
+            <h2 class="pillar__title" data-split>Sustainability</h2>
+            <p class="pillar__lede" data-reveal>We set up a mobile batch plant on the job site and produce concrete on demand. Every load travels minutes from plant to pour, so the 90-minute batch-to-discharge window never comes into play.</p>
+            <ul class="pillar__list" data-reveal-list>
+              <li>One truck delivers the full batching unit</li>
+              <li>Sets up on hydraulic outriggers, with no crane and no foundation</li>
+              <li>The entire operation fits in under one acre</li>
+              <li>Short on-site truck loops replace highway hauls</li>
+            </ul>
+          </article>
+
+          <a class="more" href="#sustainability">
+            <span class="label">learn more</span>
+            <svg class="more__arrow" viewBox="0 0 48.3 7.4" aria-hidden="true"><use href="#arrow-path"/></svg>
+            <span class="more__rule" aria-hidden="true"></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SITE — pinned; the frame grows to full screen, pushes into the plant, then spins 180° into a line -->
+    <section class="site scene" data-scene="site">
+      <div class="scene__stage site__stage" data-theme="dark">
+        <div class="site__frame">
+          <div class="site__outer"><img src="assets/img/aerial-desert.jpg" alt="Aerial view of a large desert construction site" loading="lazy" decoding="async"></div>
+          <div class="site__inner"><img src="assets/img/aerial-plant.jpg" alt="Aerial view of a mobile aggregate and batch plant layout" loading="lazy" decoding="async"></div>
+        </div>
+        <span class="site__line" aria-hidden="true"></span>
+        <p class="label site__label">about</p>
+      </div>
+    </section>
+
+    <div class="light">
+      <span class="light__axis" aria-hidden="true"></span>
+
+    <!-- SUSTAINABILITY / ABOUT — stats swipe left as you scroll; the image changes with them -->
+    <section class="about scene" id="sustainability" data-scene="about">
+      <div class="scene__stage about__stage">
+        <span class="vline vline--stats" aria-hidden="true"></span>
+        <div class="about__top">
+          <h2 class="about__title" data-split>Beyond the concept of sustainable concrete.</h2>
+          <p class="label about__source">NRMCA concrete carbon calculator</p>
+          <div class="stats stats--values">
+            <div class="stats__track">
+              <div class="stat">
+                <p class="stat__value">186.9 <span class="stat__unit">kg CO₂e/yd³</span></p>
+                <p class="stat__delta">−31.3%</p>
+              </div>
+              <div class="stat">
+                <p class="stat__value">10,888&nbsp;t <span class="stat__unit">→ 7,476&nbsp;t</span></p>
+                <p class="stat__delta">−3,412&nbsp;t</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="rule rule--draw about__rule" aria-hidden="true"></span>
+        <div class="about__bottom">
+          <div class="about__media">
+            <img class="about__img" src="assets/img/aerial-tracks.jpg" alt="Aerial view of tire tracks across a graded site" loading="lazy" decoding="async">
+          </div>
+          <div class="stats stats--captions">
+            <div class="stats__track">
+              <div class="stat">
+                <p class="stat__caption">Our 70% slag mix, cradle to gate (A1–A3)</p>
+                <p class="stat__caption stat__caption--muted">vs. the NRMCA South Central baseline of 272.2</p>
+              </div>
+              <div class="stat">
+                <p class="stat__caption">Total GWP on a 40,000 CY slab on grade: baseline vs. our mix</p>
+                <p class="stat__caption stat__caption--muted">less CO₂e on a single placement</p>
+              </div>
+            </div>
+          </div>
+          <div class="stats__dots" aria-hidden="true"><span></span><span></span></div>
+          <p class="label about__next">why us</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- INNOVATION -->
+    <section class="innov" id="innovation">
+      <span class="rule rule--draw" aria-hidden="true"></span>
+      <div class="innov__head">
+        <h2 class="innov__title" data-split>Innovation</h2>
+        <p class="innov__lede" data-reveal>Constantly engaged in industry development, with a forward push for lower-carbon concrete.</p>
+      </div>
+      <span class="rule rule--draw" aria-hidden="true"></span>
+      <div class="innov__body">
+        <div class="innov__logos" aria-hidden="true">
+          <div class="innov__logo is-active"><img src="assets/img/nrmca-logo.png" alt=""></div>
+          <div class="innov__logo"><span class="innov__wordmark">ACI</span></div>
+          <div class="innov__logo"><span class="innov__wordmark">ACI<small>South Florida</small></span></div>
+        </div>
+        <ol class="innov__list">
+          <li class="innov__item is-active">National Ready Mixed Concrete Association</li>
+          <li class="innov__item">American <br>Concrete Institute</li>
+          <li class="innov__item">ACI <br>South Florida</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- STRATEGIC RELATIONSHIPS -->
+    <section class="partners">
+      <div class="partners__head">
+        <h2 class="partners__title" data-split>Strategic Relationships</h2>
+        <p class="partners__lede" data-reveal>Concrete depends on everyone around the pour: suppliers, general contractors and shell crews. Our partnerships across construction and material supply keep every plant stocked and every placement on schedule.</p>
+      </div>
+      <ul class="partners__grid">
+        <li class="partner"><img src="assets/img/partner-concourse.png" alt="Concourse" width="144" height="143" style="width:calc(144 * var(--u))"></li>
+        <li class="partner"><img src="assets/img/partner-thales.png" alt="Thales Builders Corp" width="294" height="90" style="width:calc(294 * var(--u))"></li>
+        <li class="partner"><img src="assets/img/partner-rha.png" alt="RHa" width="286" height="72" style="width:calc(286 * var(--u))"></li>
+        <li class="partner"><img src="assets/img/partner-kimera.png" alt="Kimera" width="212" height="209" style="width:calc(212 * var(--u))"></li>
+      </ul>
+    </section>
+
+    <!-- WORKING NATION WIDE — pinned; the words part and the hub-and-spoke map opens between them -->
+    <section class="nation scene" data-scene="nation">
+      <div class="scene__stage nation__stage">
+        <svg class="nation__map" aria-hidden="true"></svg>
+        <p class="nation__word nation__word--a">Working</p>
+        <p class="nation__word nation__word--b">Nation Wide</p>
+        <p class="nation__copy">When the schedule calls for more concrete per day, we increase plant output and add trucks and crew, so you can open more fronts and run larger continuous placements.</p>
+      </div>
+    </section>
+
+    </div><!-- /.light -->
+
+    <!-- CAREERS — pinned; the page splits down the centre line and opens onto the dark section -->
+    <section class="split scene" id="careers" data-scene="split">
+      <div class="scene__stage split__stage" data-theme="light">
+        <div class="split__under">
+          <div class="split__head">
+            <p class="label">careers</p>
+            <span class="split__rule" aria-hidden="true"></span>
+          </div>
+          <h2 class="split__title"><span>work with us</span></h2>
+        </div>
+        <span class="split__guide split__guide--l" aria-hidden="true"></span>
+        <span class="split__guide split__guide--r" aria-hidden="true"></span>
+        <div class="split__panel split__panel--l"></div>
+        <div class="split__panel split__panel--r"></div>
+      </div>
+    </section>
+
+    <section class="jobs" data-theme="dark">
+      <span class="jobs__guide jobs__guide--l" aria-hidden="true"></span>
+      <span class="jobs__guide jobs__guide--r" aria-hidden="true"></span>
+      <ul class="jobs__list">
+        <li class="job">
+          <button class="job__row" aria-expanded="false">
+            <span class="job__title">Mechanic</span>
+            <span class="job__meta">
+              <span class="job__sub">sub title</span>
+              <span class="job__loc">miami, fl</span>
+              <svg class="job__arrow" viewBox="0 0 48.3 7.4" aria-hidden="true"><use href="#arrow-path"/></svg>
+            </span>
+          </button>
+          <div class="job__panel"><div class="job__panel-inner">
+            <p class="job__desc">Full job description coming soon.</p>
+            <a class="job__apply" href="mailto:elias@thalconmix.com?subject=Application%20%E2%80%94%20Mechanic">Send your CV</a>
+          </div></div>
+        </li>
+        <li class="job">
+          <button class="job__row" aria-expanded="false">
+            <span class="job__title">Sales Marketing</span>
+            <span class="job__meta">
+              <span class="job__sub">sub title</span>
+              <span class="job__loc">miami, fl</span>
+              <svg class="job__arrow" viewBox="0 0 48.3 7.4" aria-hidden="true"><use href="#arrow-path"/></svg>
+            </span>
+          </button>
+          <div class="job__panel"><div class="job__panel-inner">
+            <p class="job__desc">Full job description coming soon.</p>
+            <a class="job__apply" href="mailto:elias@thalconmix.com?subject=Application%20%E2%80%94%20Sales%20Marketing">Send your CV</a>
+          </div></div>
+        </li>
+        <li class="job">
+          <button class="job__row" aria-expanded="false">
+            <span class="job__title">Procurement</span>
+            <span class="job__meta">
+              <span class="job__sub">sub title</span>
+              <span class="job__loc">miami, fl</span>
+              <svg class="job__arrow" viewBox="0 0 48.3 7.4" aria-hidden="true"><use href="#arrow-path"/></svg>
+            </span>
+          </button>
+          <div class="job__panel"><div class="job__panel-inner">
+            <p class="job__desc">Full job description coming soon.</p>
+            <a class="job__apply" href="mailto:elias@thalconmix.com?subject=Application%20%E2%80%94%20Procurement">Send your CV</a>
+          </div></div>
+        </li>
+        <li class="job">
+          <button class="job__row" aria-expanded="false">
+            <span class="job__title">Product Development</span>
+            <span class="job__meta">
+              <span class="job__sub">sub title</span>
+              <span class="job__loc">miami, fl</span>
+              <svg class="job__arrow" viewBox="0 0 48.3 7.4" aria-hidden="true"><use href="#arrow-path"/></svg>
+            </span>
+          </button>
+          <div class="job__panel"><div class="job__panel-inner">
+            <p class="job__desc">Full job description coming soon.</p>
+            <a class="job__apply" href="mailto:elias@thalconmix.com?subject=Application%20%E2%80%94%20Product%20Development">Send your CV</a>
+          </div></div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- FOOTER — pinned; the mark grows to full width and becomes the footer -->
+    <footer class="foot scene" id="contact" data-scene="foot">
+      <div class="scene__stage foot__stage" data-theme="dark">
+        <svg class="foot__mark" aria-hidden="true"></svg>
+        <div class="foot__logo" aria-hidden="true">
+          <svg viewBox="0 0 340 25" fill="currentColor"><use href="#logo-paths"/></svg>
+        </div>
+        <div class="foot__content">
+          <h2 class="foot__title">let’s talk</h2>
+          <a class="foot__link" href="mailto:elias@thalconmix.com">elias@thalconmix.com</a>
+          <a class="foot__link" href="https://www.linkedin.com/" target="_blank" rel="noopener">Linkedin</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Shared symbols -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <path id="arrow-path" d="M0 3.68198V4.18198H47.8031V3.68198V3.18198H0V3.68198ZM48.1567 4.03553C48.3519 3.84027 48.3519 3.52369 48.1567 3.32843L44.9747 0.146447C44.7794 -0.0488155 44.4628 -0.0488155 44.2676 0.146447C44.0723 0.341709 44.0723 0.658291 44.2676 0.853554L47.096 3.68198L44.2676 6.51041C44.0723 6.70567 44.0723 7.02225 44.2676 7.21751C44.4628 7.41278 44.7794 7.41278 44.9747 7.21751L48.1567 4.03553Z" fill="currentColor"/>
+      <g id="logo-paths">
+        <path d="M44.6154 0.00673265V4.55127H30.7692V22.7294H13.8462V4.55127H0V0.00673265H44.6154Z"/>
+        <path d="M192.308 18.1849V22.7294H147.692V0.00673265H164.615V18.1849H192.308Z"/>
+        <path d="M93.8462 0.00673265V22.7294H89.2308V15.1518H53.8462V22.7294H49.2308V0.00673265H53.8462V4.55127H89.2308V0.00673265H93.8462Z"/>
+        <path d="M196.923 22.7294L197.012 12.1255H196.923V0.00673265H241.538V4.55127H212.308V18.1849H241.538V22.7294H221.86H196.923Z"/>
+        <path d="M261.538 0.00336632L246.154 0V22.7227H261.538L275.385 22.726H290.769V0.00336632H261.538ZM261.538 18.1781V4.5479H275.385V18.1815L261.538 18.1781Z"/>
+        <path d="M260 0V0.00336632L244.615 0H260Z"/>
+        <path d="M340 0.00673265V22.7294H315.638L300 12.0077V22.7294H295.385V0.00673265H306.745L335.385 20.3629V0.00673265H340Z"/>
+        <path d="M143.33 22.726H120.253L115.829 19.693H98.4615V15.1485H109.2L106.995 13.637L98.4615 7.78631V0.00336632H111.361L143.33 22.726Z"/>
+      </g>
+    </defs>
+  </svg>
+
+  <script src="illo.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
