@@ -1,0 +1,118 @@
+// Puts the Thalcon site into a Framer project.
+//
+//   npm run deploy                       project from FRAMER_PROJECT_URL in .env
+//   npm run deploy -- <project url>      any other project (its key in FRAMER_API_KEY)
+//   npm run deploy -- --replace-page     also clear everything else off the Home page
+//   npm run deploy -- --content c.json   apply content exported with `npm run content:export`
+//
+// What it does, every run:
+//   1. uploads everything in assets/ (once per project, cached in .cache/)
+//   2. generates ThalconSite.tsx from the site files and type-checks it in Framer
+//   3. creates or updates that code file
+//   4. makes sure the Home page shows one full-width ThalconSite instance,
+//      with Tablet and Phone breakpoints so phones get device width
+// Content the client edited on the instance is kept. Nothing is published.
+import { readFile, writeFile, readdir, stat, mkdir } from "node:fs/promises"
+import { join, extname } from "node:path"
+import { connect } from "framer-api"
+import { generate } from "./generate.mjs"
+
+const args = process.argv.slice(2)
+const flag = (name) => args.includes(name)
+const option = (name) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined)
+const projectUrl = args.find((a) => a.startsWith("https://")) ?? process.env.FRAMER_PROJECT_URL
+if (!projectUrl) throw new Error("Pass a project URL or set FRAMER_PROJECT_URL in .env")
+if (!process.env.FRAMER_API_KEY) throw new Error("Set FRAMER_API_KEY in .env (Framer: Site settings → API Keys)")
+
+const SITE = new URL("..", import.meta.url).pathname
+const FILE = "ThalconSite.tsx"
+const INSTANCE = "Thalcon site"
+const MIME = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".svg": "image/svg+xml", ".webp": "image/webp", ".mp4": "video/mp4", ".webm": "video/webm" }
+
+const framer = await connect(projectUrl, process.env.FRAMER_API_KEY)
+try {
+    const info = await framer.getProjectInfo()
+    console.log(`Project: ${info.name}`)
+
+    /* 1. Assets ------------------------------------------------------------ */
+    const cacheFile = join(SITE, "framer-build/.cache", `assets-${info.id ?? info.name}.json`.replace(/[^\w.-]/g, "_"))
+    const cache = JSON.parse(await readFile(cacheFile, "utf8").catch(() => "{}"))
+    const ASSETS = {}
+    for (const dir of ["assets/img", "assets/video"]) {
+        for (const name of await readdir(join(SITE, dir)).catch(() => [])) {
+            const ext = extname(name).toLowerCase()
+            if (!MIME[ext]) continue
+            const path = `${dir}/${name}`
+            const { size, mtimeMs } = await stat(join(SITE, path))
+            const key = `${size}:${mtimeMs}`
+            if (cache[path]?.key !== key) {
+                const bytes = new Uint8Array(await readFile(join(SITE, path)))
+                const input = { bytes, mimeType: MIME[ext] }
+                const asset = dir.endsWith("video")
+                    ? await framer.uploadFile({ file: input, name })
+                    : await framer.uploadImage({ image: input, name })
+                cache[path] = { key, url: asset.url }
+                console.log(`  uploaded ${path}`)
+            }
+            ASSETS[path] = cache[path].url
+        }
+    }
+    await mkdir(join(SITE, "framer-build/.cache"), { recursive: true })
+    await writeFile(cacheFile, JSON.stringify(cache, null, 2))
+    console.log(`Assets: ${Object.keys(ASSETS).length}`)
+
+    /* 2–3. Code file ------------------------------------------------------- */
+    const code = await generate(ASSETS)
+    const errors = (await framer.typecheckCode(FILE, code)).filter((d) => d.category === 1)
+    if (errors.length) throw new Error(`Type errors in ${FILE}:\n${errors.map((d) => d.message).join("\n")}`)
+    const existing = await framer.getCodeFile(FILE)
+    const file = existing ? await existing.setFileContent(code) : await framer.createCodeFile(FILE, code)
+    const component = file.exports.find((e) => e.type === "component" && e.name === "ThalconSite")
+    console.log(`Code: ${FILE} ${existing ? "updated" : "created"}`)
+
+    /* 4. Home page ---------------------------------------------------------- */
+    const pages = await framer.getNodesWithType("WebPageNode")
+    const home = pages.find((p) => p.path === "/") ?? pages[0]
+    const frames = (await framer.getChildren(home.id)).filter((n) => n.constructor.name === "FrameNode")
+    const desktop = frames.find((n) => n.isPrimaryBreakpoint) ?? frames[0]
+    await framer.setAttributes(desktop.id, { layout: "stack", stackDirection: "vertical", stackAlignment: "center", gap: "0px", padding: "0px", height: "fit-content" })
+
+    let kids = await framer.getChildren(desktop.id)
+    let instance = kids.find((n) => n.name === INSTANCE)
+    if (!instance) {
+        instance = await framer.addComponentInstance({ url: component.insertURL, parentId: desktop.id })
+        console.log("Page: added ThalconSite")
+    }
+    instance = await framer.setAttributes(instance.id, { name: INSTANCE, position: "relative", width: "100%", height: "fit-content" })
+    await framer.setParent(instance.id, desktop.id, 0)
+
+    // With only a Desktop breakpoint Framer serves <meta viewport width=1200> and
+    // phones get a shrunken desktop page. Tablet and Phone breakpoints switch it to
+    // device width; they show the same instance, the site's CSS does the rest.
+    const breakpoints = (await framer.getChildren(home.id)).filter((n) => n.isBreakpoint)
+    if (breakpoints.length === 1) {
+        for (const bp of await home.getBreakpointSuggestions()) {
+            await home.addBreakpoint(desktop.id, bp)
+            console.log(`Page: added ${bp.name} breakpoint`)
+        }
+    }
+
+    if (flag("--replace-page")) {
+        const others = (await framer.getChildren(desktop.id)).filter((n) => n.id !== instance.id)
+        if (others.length) await framer.removeNodes(others.map((n) => n.id))
+        const loose = (await framer.getChildren(home.id)).filter((n) => n.constructor.name === "FrameNode" && !n.isBreakpoint && n.id !== desktop.id)
+        if (loose.length) await framer.removeNodes(loose.map((n) => n.id))
+        console.log(`Page: removed ${others.length + loose.length} other layers`)
+    }
+
+    const contentFile = option("--content")
+    if (contentFile) {
+        const controls = JSON.parse(await readFile(contentFile, "utf8"))
+        await framer.setAttributes(instance.id, { controls })
+        console.log(`Content: applied ${contentFile}`)
+    }
+
+    console.log(`Done. Open ${projectUrl} and press Preview. Nothing was published.`)
+} finally {
+    await framer.disconnect()
+}
