@@ -356,19 +356,13 @@
     dctx.clearRect(0, 0, dw, dh);
     dctx.globalAlpha = mobile ? 1 - range(p, 0.6, 0.7) : 1;
     dctx.lineWidth = lw;
-    dctx.strokeStyle = `rgba(${lc},${lc},${lc},${f2(lerp(1, lerp(0.6, 0.24, m), inv))})`;
+    // lands as one even line, as bright as the offer rule when its fill is full
+    // (track .24 under fill .6 ≈ .7); the offer then eases it to its progress
+    dctx.strokeStyle = `rgba(${lc},${lc},${lc},${f2(lerp(1, 0.7, inv))})`;
     dctx.beginPath();
     dctx.moveTo(x0, y0);
     dctx.lineTo(x1, y1);
     dctx.stroke();
-    if (m > 0) {
-      // the offer rule's progress fill (first third) brightens as it lands
-      dctx.strokeStyle = `rgba(245,245,245,${f2(0.6 * m)})`;
-      dctx.beginPath();
-      dctx.moveTo(x0, y0);
-      dctx.lineTo(x0 + (x1 - x0) / 3, lerp(y0, y1, 1 / 3));
-      dctx.stroke();
-    }
 
     // pivot = centre of the hand, expressed in each text's own box
     const px = handLen / 2 - textA.offsetLeft;
@@ -393,11 +387,13 @@
   // Hand-over: once the offer has slid into place under the clock's last
   // screen, its own rule takes over from the drawn line
   const offerSec = $('.offer');
-  tickers.push(() => {
+  let offerArrivedAt = 0; // when the rule took over (0 = not yet)
+  tickers.push(now => {
     const arrived = mobile || offerSec.getBoundingClientRect().top <= 19 * U + 1;
     if (arrived === offerSec.classList.contains('is-arrived')) return;
     offerSec.classList.toggle('is-arrived', arrived);
     dial.style.opacity = arrived && !mobile ? 0 : '';
+    offerArrivedAt = arrived && !mobile ? now : 0;
   });
 
   /* ---------------------------------------------------------------------- */
@@ -436,7 +432,9 @@
       countIdx = idx;
       countStrip.style.transform = `translateY(${-idx}em)`;
     }
-    ruleFill.style.transform = `scaleX(${((illoT + 1) / 3).toFixed(4)})`;
+    // the rule arrives full from the clock, then settles back to the progress
+    const settle = !offerArrivedAt || reduceMotion ? 1 : ease.io(clamp((now - offerArrivedAt - 250) / 1100));
+    ruleFill.style.transform = `scaleX(${lerp(1, (illoT + 1) / 3, settle).toFixed(4)})`;
     if (illoVisible || !illoIntroStart) {
       const intro = illoIntroStart ? (reduceMotion ? 1 : clamp((now - illoIntroStart) / 2200)) : 0;
       illo.render(illoT, intro, now);
@@ -592,19 +590,28 @@
   const scaleNotes = $('.scale__notes');
   const scaleNums = $$('.scale__row [data-n]');
   const fmt = n => String(n); // Figma shows plain digits (1200, not 1,200)
+  let countFrom = 0; // when the count-up was triggered (0 = not yet)
+  let countShown = -1;
 
-  addScene($('.scale'), p => {
+  addScene($('.scale'), (p, now) => {
     if (mobile) {
-      scaleNums.forEach(el => { el.textContent = fmt(+el.dataset.n); });
+      // static layout on mobile: drop anything a desktop render left inline
+      [scaleTitle, scaleNotes, scaleFrame].forEach(el => { el.style.opacity = el.style.transform = ''; });
+      [scaleTable, ...scaleRows].forEach(el => { el.style.removeProperty('--k'); el.style.removeProperty('--t'); });
       return;
     }
     const open = ease.io(range(p, 0.02, 0.22));
     const close = ease.io(range(p, 0.7, 0.94));
     // grid: the way in is the way out reversed. Squares grow out of the
-    // axis while the grid fades in; on the way out they shrink and fade
+    // axis while the grid fades in; on the way out they shrink and fade.
+    // Mid-scale the major lines and the horizontal axis stand out, like a
+    // cartesian plane, then settle back into an even grid.
     const g = open * (1 - close);
+    const mid = Math.sin(Math.PI * g);
     scaleGrid.style.setProperty('--cell', f2(1512 / 80 * U * lerp(0.2, 1, g)) + 'px');
-    scaleGrid.style.opacity = f2(g);
+    scaleGrid.style.setProperty('--minor', (0.105 * range(g, 0.35, 1)).toFixed(3));
+    scaleGrid.style.setProperty('--major', (0.1 * mid).toFixed(3));
+    scaleGrid.style.setProperty('--axis', (0.17 * mid).toFixed(3));
 
     // table rules draw in once the grid is open, row by row
     scaleTable.style.setProperty('--k', ease.io(range(p, 0.14, 0.3)).toFixed(4));
@@ -617,9 +624,10 @@
     scaleNotes.style.opacity = f2(nt);
     scaleNotes.style.transform = `translate3d(0, ${f2((1 - nt) * 16 * U)}px, 0)`;
 
-    // numbers count up from 0
-    const c = ease.out(range(p, 0.3, 0.5));
-    scaleNums.forEach(el => { el.textContent = fmt(Math.round(+el.dataset.n * c)); });
+    // scroll only triggers the count; it then runs on its own (see ticker
+    // below). Scrolling back above the table resets it for next time.
+    if (p >= 0.3 && !countFrom) countFrom = now;
+    else if (p < 0.2) countFrom = 0;
 
     // everything folds toward the axis as the grid closes
     const fo = range(close, 0, 0.6);
@@ -627,6 +635,14 @@
     scaleFrame.style.transform = `scale(${(1 - 0.06 * fo).toFixed(4)})`;
     scaleFrame.style.transformOrigin = `${f2(756 * U)}px 50%`;
   }, 0.1);
+
+  // numbers count up from 0 over a fixed time once triggered
+  tickers.push(now => {
+    const c = mobile ? 1 : !countFrom ? 0 : reduceMotion ? 1 : ease.out(clamp((now - countFrom) / 1600));
+    if (c === countShown) return;
+    countShown = c;
+    scaleNums.forEach(el => { el.textContent = fmt(Math.round(+el.dataset.n * c)); });
+  });
 
   /* ---------------------------------------------------------------------- */
   /* NATION WIDE — words part, hub-and-spoke map opens                       */
@@ -775,7 +791,12 @@
     const cxu = mobile ? W / 2 : 756 * U;
     panelL.style.transform = `translate3d(${f2(-k * (cxu + 2))}px, 0, 0)`;
     panelR.style.transform = `translate3d(${f2(k * (W - cxu + 2))}px, 0, 0)`;
+    // once fully open, take the panels out of paint: some browsers (Safari)
+    // can leave a stale layer of a panel that slid out of the clipped stage
+    panelL.style.visibility = panelR.style.visibility = k >= 0.999 ? 'hidden' : '';
+    // mobile sizes the panels inline; clear that again after a resize to desktop
     if (mobile) { panelL.style.width = cxu + 'px'; panelR.style.left = cxu + 'px'; }
+    else { panelL.style.width = panelR.style.left = ''; }
 
     const kg = ease.io(range(p, 0.1, 0.68));
     const gl = mobile ? lerp(cxu, 20, kg) : lerp(cxu, 381 * U, kg);

@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 -65.2 252.8 252.8">
-  <style>path { fill: #000; } @media (prefers-color-scheme: dark) { path { fill: #f5f5f5; } }</style>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -69.2 260.8 260.8">
+  <style>path { fill: none; stroke: #000; stroke-width: 9; } @media (prefers-color-scheme: dark) { path { stroke: #f5f5f5; } }</style>
   <path d="M0 0V8.16561H192.155L180.843 0H0Z"/>
   <path d="M203.467 16.3313H0V40.8281H236.803V40.3962L203.467 16.3313Z"/>
   <path d="M0 90.2591L44.6405 122.484H236.803V48.9937H0V90.2591Z"/>

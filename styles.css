@@ -373,7 +373,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    line lands exactly on the offer rule (163u from the top) and hands over. */
 @media (min-width: 820px) {
   .offer { margin-top: calc(19 * var(--u) - 100vh); margin-top: calc(19 * var(--u) - 100svh); }
-  .offer__meta, .offer__rule { transition: opacity .6s linear; }
+  .offer__meta { transition: opacity .6s linear; } /* the rule appears at once, in the line's place */
   .offer:not(.is-arrived) .offer__meta, .offer:not(.is-arrived) .offer__rule { opacity: 0; transition-duration: 0s; }
 }
 .offer__aside { position: relative; }
@@ -616,17 +616,29 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* Scale output — Figma frame (title top → table bottom = 764u), kept clear of
    the nav: centred on tall screens, squeezed between nav and bottom on short ones */
 .scale { height: 400vh; }
+/* Graph paper in two weights: every fifth line (major) and the horizontal
+   axis are only emphasised mid-scale, like a cartesian plane coming into
+   focus; JS sets --cell and the three alphas. A line always sits on the
+   centre axis (x 756u) and on the vertical centre. */
 .scale__grid {
   --cell: calc(1512 / 80 * var(--u));
+  --minor: 0;
+  --major: 0;
+  --axis: 0;
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, #e4e4e4 1px, transparent 1px),
-    linear-gradient(to bottom, #e4e4e4 1px, transparent 1px);
-  background-size: var(--cell) var(--cell);
-  background-position: calc(756 * var(--u)) 50%;
-  opacity: 0;
+    linear-gradient(to right, rgba(0, 0, 0, var(--major)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, var(--major)) 1px, transparent 1px),
+    linear-gradient(to right, rgba(0, 0, 0, var(--minor)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, var(--minor)) 1px, transparent 1px);
+  background-size:
+    calc(var(--cell) * 5) calc(var(--cell) * 5), calc(var(--cell) * 5) calc(var(--cell) * 5),
+    var(--cell) var(--cell), var(--cell) var(--cell);
+  background-position: calc(756 * var(--u)) 50vh;
+  background-position: calc(756 * var(--u)) 50svh;
 }
+.scale__grid::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0, 0, 0, var(--axis)); }
 .scale__frame { position: absolute; left: 0; width: 100%; top: max(calc(110 * var(--u)), calc(50% - 382 * var(--u))); bottom: max(calc(30 * var(--u)), calc(50% - 382 * var(--u))); }
 .scale__title {
   position: absolute;
@@ -924,7 +936,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
   .scale { height: auto; }
   .scale__stage { position: relative; height: auto; padding: 64px 0; }
-  .scale__grid { opacity: 1 !important; }
+  .scale__grid { --cell: 19px !important; --minor: .105 !important; --major: 0 !important; --axis: 0 !important; }
   .scale__frame { position: relative; top: auto; bottom: auto; height: auto; padding: 0 var(--gutter); }
   .scale__title, .scale__notes, .scale__table { position: relative; left: 0; top: 0; bottom: auto; width: auto; }
   .scale__table::after { display: none; }
