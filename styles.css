@@ -547,33 +547,45 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* Sustainability → Innovation: one pinned 2×2 grid. The centre axis and the
    rule (470u down) hold still while the stats hand over to Innovation; JS
-   splits the scroll: stats to 52%, hand-over to 62%, then the names. */
-.about { height: calc(900 * var(--u) + 430vh); }
+   splits the scroll: stats to 52%, hand-over to 62%, then the names.
+   Heights and type here use --v: the design unit, shrunk when the window is
+   too short for the 900u grid plus the 64u under the nav, so the whole grid
+   always fits on screen. The vertical lines stay on u. */
+.about {
+  --v: min(var(--u), calc((100vh - 64 * var(--u)) / 900));
+  --v: min(var(--u), calc((100svh - 64 * var(--u)) / 900));
+  height: calc(900 * var(--v) + 430vh);
+}
 /* where Innovation is fully in (62% of the pinned scroll), for the nav link */
-.about__anchor { position: absolute; left: 0; top: calc((900 * var(--u) + 330vh) * .62); }
+.about__anchor { position: absolute; left: 0; top: calc((900 * var(--v) + 330vh) * .62); }
 /* pinned flush with the bottom edge, but never closer than 64u to the top,
    so the title clears the nav on short screens */
-.about__stage { overflow: visible; height: auto; top: max(calc(64 * var(--u)), calc(100vh - 900 * var(--u))); }
+.about__stage { overflow: visible; height: auto; top: max(calc(64 * var(--u)), calc(100vh - 900 * var(--v))); }
 .vline { position: absolute; width: var(--hair); background: var(--line); }
-.vline--stats { left: calc(1132 * var(--u)); top: 0; height: calc(900 * var(--u)); transform-origin: bottom; }
-.about__top { position: relative; height: calc(470 * var(--u)); }
+/* on tall windows the stage sits low; the column line runs up to the nav */
+.vline--stats {
+  --gap: calc(max(calc(64 * var(--u)), calc(100vh - 900 * var(--v))) - 64 * var(--u));
+  left: calc(1132 * var(--u)); top: calc(-1 * var(--gap)); height: calc(900 * var(--v) + var(--gap));
+  transform-origin: bottom;
+}
+.about__top { position: relative; height: calc(470 * var(--v)); }
 .about__title {
   position: absolute;
   left: var(--gutter);
-  top: calc(46 * var(--u));
-  width: calc(560 * var(--u));
+  top: calc(46 * var(--v));
+  width: calc(560 * var(--v));
   font-family: var(--f-display);
   font-weight: 600;
-  font-size: calc(68 * var(--u));
+  font-size: calc(68 * var(--v));
   line-height: 1.12;
   text-transform: uppercase;
 }
-.about__source { position: absolute; left: var(--gutter); bottom: calc(29 * var(--u)); }
+.about__source { position: absolute; left: var(--gutter); bottom: calc(29 * var(--v)); }
 /* Four columns, 376u wide (the 756u → 1132u column), on one track that
    slides a column at a time; the column on the left is black, the rest grey.
    The window runs to the page edge so the right-hand column isn't clipped. */
 .stats { position: absolute; left: calc(756 * var(--u)); right: 0; overflow: hidden; }
-.stats--values { bottom: calc(34 * var(--u)); }
+.stats--values { bottom: calc(34 * var(--v)); }
 .stats__track { display: flex; will-change: transform; }
 .stats--values .stats__track { align-items: flex-end; }
 .stat { flex: 0 0 calc(376 * var(--u)); color: var(--grey); transition: color .5s linear; }
@@ -582,18 +594,18 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   padding: 0 calc(16 * var(--u)) 0 calc(21 * var(--u));
   font-family: var(--f-display);
   font-weight: 600;
-  font-size: calc(68 * var(--u));
+  font-size: calc(68 * var(--v));
   line-height: 1.05;
   text-transform: uppercase;
 }
 .stat__unit { display: block; }
 .about__rule { width: auto; margin-right: var(--gutter); margin-left: calc(-8 * var(--u)); }
-.about__bottom { position: relative; height: calc(430 * var(--u)); }
+.about__bottom { position: relative; height: calc(430 * var(--v)); }
 /* the photo fills the bottom-left quadrant, down to the bottom edge */
 .about__media { position: absolute; left: 0; top: 0; bottom: 0; width: calc(756 * var(--u)); overflow: hidden; background: #e8e2d8; }
 .about__img { position: absolute; left: 0; top: 0; width: 100%; height: 146%; object-fit: cover; will-change: transform; }
-.stats--captions { top: calc(246 * var(--u)); }
-.stat__caption { font-weight: 500; font-size: calc(30 * var(--u)); line-height: 1.2; padding: 0 calc(20 * var(--u)) 0 calc(21 * var(--u)); }
+.stats--captions { top: calc(246 * var(--v)); }
+.stat__caption { font-weight: 500; font-size: calc(30 * var(--v)); line-height: 1.2; padding: 0 calc(20 * var(--u)) 0 calc(21 * var(--u)); }
 
 /* Innovation, in the same quadrants: title and note top left (where the
    stats title and source were); below the rule the logo (where the photo
@@ -603,16 +615,16 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .innov__title {
   position: absolute;
   left: var(--gutter);
-  top: calc(46 * var(--u));
+  top: calc(46 * var(--v));
   font-family: var(--f-display);
   font-weight: 600;
-  font-size: calc(68 * var(--u));
+  font-size: calc(68 * var(--v));
   line-height: 1.12;
   text-transform: uppercase;
 }
-/* bottom sits 29u above the rule, like the source note */
-.innov__lede { position: absolute; left: var(--gutter); bottom: calc(100% - 441 * var(--u)); width: calc(380 * var(--u)); line-height: 1.2; }
-.innov__logos { position: absolute; left: var(--gutter); top: calc(503 * var(--u)); width: calc(266 * var(--u)); height: calc(260 * var(--u)); }
+/* bottom sits 29 units above the rule, like the source note */
+.innov__lede { position: absolute; left: var(--gutter); bottom: calc(100% - 441 * var(--v)); width: calc(380 * var(--u)); line-height: 1.2; }
+.innov__logos { position: absolute; left: var(--gutter); top: calc(503 * var(--v)); width: calc(266 * var(--v)); height: calc(260 * var(--v)); }
 .innov__logo {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;
@@ -625,7 +637,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .innov__logo-note { font-family: var(--f-mono); font-size: calc(14 * var(--u)); text-transform: uppercase; margin-top: calc(10 * var(--u)); }
 .innov__window {
   position: absolute;
-  left: calc(756 * var(--u)); right: 0; top: calc(470 * var(--u)); bottom: 0;
+  left: calc(756 * var(--u)); right: 0; top: calc(470 * var(--v)); bottom: 0;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(#000 60%, transparent);
   mask-image: linear-gradient(#000 60%, transparent);
@@ -633,9 +645,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .innov__list { will-change: transform; }
 .innov__item {
   position: relative;
-  padding: calc(20 * var(--u)) var(--gutter) calc(16 * var(--u)) calc(21 * var(--u));
+  padding: calc(20 * var(--v)) var(--gutter) calc(16 * var(--v)) calc(21 * var(--u));
   font-weight: 600;
-  font-size: calc(55 * var(--u));
+  font-size: calc(55 * var(--v));
   line-height: 1.177;
   color: var(--mute);
   transition: color .3s linear;
