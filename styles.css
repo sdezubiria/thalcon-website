@@ -462,15 +462,23 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* --------------------------------------------------------------------------
    Site (video moment)
    -------------------------------------------------------------------------- */
-.site { height: 420vh; background: var(--ink); }
+.site { height: 540vh; background: var(--ink); }
 .site__stage { background: var(--ink); }
 .site__frame { position: absolute; inset: 0; will-change: transform, clip-path; transform-origin: 50% 50%; }
-.site__outer, .site__inner { position: absolute; overflow: hidden; }
-.site__outer { inset: 0; }
-.site__outer img, .site__inner img { position: absolute; left: 50%; top: 50%; will-change: transform; }
-.site__outer img { width: 100%; height: 100%; object-fit: cover; left: 0; top: 0; }
-.site__inner img { width: 100%; height: 100%; object-fit: cover; left: 0; top: 0; }
-.site__outer::after { content: ""; position: absolute; inset: 0; background: #000; opacity: var(--dim, 0); }
+.site__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #111; will-change: transform; }
+/* The figure shown centred under the video card once the video has played
+   (JS sets top) */
+.site__stat { position: absolute; left: 50%; top: 0; translate: -50% 0; color: var(--bone); text-align: center; }
+.site__stat-value, .site__stat-note { opacity: 0; will-change: transform, opacity; }
+.site__stat-value {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: calc(120 * var(--u));
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.site__stat-note { width: calc(340 * var(--u)); margin: calc(22 * var(--u)) auto 0; line-height: 1.2; }
 .site__line {
   position: absolute;
   left: 0; top: 0;
@@ -973,6 +981,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .jobtab__meta { font-size: 11px; margin-top: 24px; }
   .jobtab__desc { width: auto; font-size: 17px; margin-top: 24px; }
   .jobtab__apply { font-size: 11px; margin-top: 28px; }
+
+  .site__stat-value { font-size: 56px; }
+  .site__stat-note { width: 70vw; margin-top: 14px; }
 
   .foot__title { left: 20px; font-size: min(38px, 9.5vw); }
   .foot__link { font-size: 11px; }

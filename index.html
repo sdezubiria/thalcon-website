@@ -141,12 +141,18 @@
       </div>
     </section>
 
-    <!-- SITE — pinned; the frame grows to full screen, pushes into the plant, then spins 180° into a line -->
+    <!-- SITE — pinned; the video card grows to full screen while the video plays with scroll,
+         shrinks back to a card with the "~1 acre" figure under it, then spins 180° into a line -->
     <section class="site scene" data-scene="site">
       <div class="scene__stage site__stage" data-theme="dark">
         <div class="site__frame">
-          <div class="site__outer"><img src="assets/img/aerial-desert.jpg" alt="Aerial view of a large desert construction site" loading="lazy" decoding="async"></div>
-          <div class="site__inner"><img src="assets/img/aerial-plant.jpg" alt="Aerial view of a mobile aggregate and batch plant layout" loading="lazy" decoding="async"></div>
+          <video class="site__video" muted playsinline preload="auto" poster="assets/img/site-aerial.jpg" aria-label="Aerial view of a large site laid out with stockpiles">
+            <source src="assets/video/site-aerial.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="site__stat">
+          <p class="site__stat-value">~1 acre</p>
+          <p class="label site__stat-note">for the full operation, stockpiles included</p>
         </div>
         <span class="site__line" aria-hidden="true"></span>
         <p class="label site__label">sustainability</p>
@@ -407,5 +413,7 @@
 
   <script src="illo.js"></script>
   <script src="main.js"></script>
+  <!-- TEST VERSION ONLY: review checklist for meetings. Remove before launch. -->
+  <script src="review.js"></script>
 </body>
 </html>

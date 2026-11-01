@@ -442,45 +442,66 @@
   });
 
   /* ---------------------------------------------------------------------- */
-  /* SITE — frame grows, pushes into the plant, spins 180° into a line       */
+  /* SITE — video card grows to full screen and plays with the scroll,      */
+  /* shrinks back to a card with the "~1 acre" figure under it, then spins  */
+  /* 180° into a line                                                        */
   /* ---------------------------------------------------------------------- */
   const siteStage = $('.site__stage');
   const siteFrame = $('.site__frame');
-  const siteOuter = $('.site__outer');
-  const siteOuterImg = $('.site__outer img');
-  const siteInner = $('.site__inner');
+  const siteVideo = $('.site__video');
+  const siteStat = $('.site__stat');
+  const siteStatValue = $('.site__stat-value');
+  const siteStatNote = $('.site__stat-note');
   const siteLine = $('.site__line');
   const siteLabel = $('.site__label');
+  let siteVideoT = 0; // 0–1, how far through the video the scroll has got
+  const lerpRect = (r, s, t) => r.map((v, i) => lerp(v, s[i], t)); // [x0, y0, x1, y1]
 
-  addScene($('.site'), p => {
-    const a = ease.io(range(p, 0.02, 0.3));
-    const b = ease.io(range(p, 0.32, 0.6));
-    const c = ease.io(range(p, 0.62, 0.88));
-    const d = ease.io(range(p, 0.88, 0.985));
+  const siteScene = addScene($('.site'), p => {
+    const a = ease.io(range(p, 0.03, 0.22)); // card → full screen
+    const b = ease.io(range(p, 0.24, 0.5));  // footage pushes in while it plays
+    const e = ease.io(range(p, 0.52, 0.62)); // full screen → card above the figure
+    const c = ease.io(range(p, 0.8, 0.93));  // crop to a line and turn
+    const d = ease.io(range(p, 0.93, 0.99)); // line settles at the bottom
+    siteVideoT = range(p, 0.02, 0.5);
 
-    // A — the card opens like a window onto the site
-    const cw0 = Math.min(704 * U, W * 0.86), ch0 = cw0 * 518 / 704;
-    const cw = lerp(cw0, W, a), ch = lerp(ch0, H, a);
-    siteOuterImg.style.transform = `scale(${(lerp(1.22, 1, a) * lerp(1, 1.7, b)).toFixed(4)})`;
-    siteOuter.style.setProperty('--dim', (0.45 * b).toFixed(3));
+    // The visible window onto the footage. A: the 704 × 469 card (Figma),
+    // centred, opens to full screen. E: once the video has played it shrinks
+    // back to a card, with the figure centred under it; the pair is centred
+    // as a group and the card gives up height if the screen is short.
+    const cw0 = Math.min(704 * U, W * 0.86), ch0 = cw0 * 469 / 704;
+    const card = [(W - cw0) / 2, (H - ch0) / 2, (W + cw0) / 2, (H + ch0) / 2];
+    const gap = (mobile ? 24 : 40 * U), statH = siteStat.offsetHeight;
+    const top1 = mobile ? 70 : 100 * U;
+    const ch1 = Math.min(ch0, H - top1 - gap - statH - (mobile ? 24 : 40 * U)), cw1 = ch1 * 704 / 469;
+    const gy = Math.max(top1, (H - ch1 - gap - statH) / 2);
+    const shrunk = [(W - cw1) / 2, gy, (W + cw1) / 2, gy + ch1];
+    const R = lerpRect(lerpRect(card, [0, 0, W, H], a), shrunk, e);
+    siteStat.style.top = f2(gy + ch1 + gap) + 'px';
 
-    // B — the plant photo inside grows until it fills the screen
-    const pw1 = cw * 550.5 / 704, ph1 = pw1 * 367 / 550.5;
-    const cover = Math.max(W, H * 1.5);
-    const pw = lerp(pw1, cover * 1.04, b), ph = lerp(ph1, cover * 1.04 / 1.5, b);
-    siteInner.style.left = f2((W - pw) / 2) + 'px';
-    siteInner.style.top = f2((H - ph) / 2) + 'px';
-    siteInner.style.width = f2(pw) + 'px';
-    siteInner.style.height = f2(ph) + 'px';
+    siteVideo.style.transform = `scale(${(lerp(1.08, 1, a) * lerp(1, 1.12, b)).toFixed(4)})`;
 
-    // C — rotate 180° while the window crops down to a line (no squashing:
-    // the photo keeps its size, only the visible band narrows)
+    // The figure, only after the video: value first, then the note
+    const si = ease.out(range(p, 0.6, 0.68)), ni = ease.out(range(p, 0.63, 0.71));
+    const so = ease.io(range(p, 0.75, 0.8));
+    siteStatValue.style.opacity = f2(si * (1 - so));
+    siteStatValue.style.transform = `translate3d(0, ${f2((1 - si) * 40 * U - so * 20 * U)}px, 0)`;
+    siteStatNote.style.opacity = f2(ni * (1 - so));
+    siteStatNote.style.transform = `translate3d(0, ${f2((1 - ni) * 16 * U - so * 20 * U)}px, 0)`;
+
+    // C — the window crops down to a line while it turns 180° about its own
+    // centre, which drifts to the middle of the screen (no squashing: the
+    // footage keeps its size, only the visible band narrows)
     const lineW = mobile ? W - 20 : 1472 * U;
     // crop leads, rotation follows: it reads as a band of footage that turns
     const crop = ease.out(range(c, 0, 0.55));
     const turn = ease.io(range(c, 0.12, 1));
-    const bandW = lerp(cw, lineW, ease.io(range(c, 0, 0.6))), bandH = H * Math.pow(1.5 / H, crop);
-    siteFrame.style.clipPath = `inset(${f2((H - bandH) / 2)}px ${f2((W - bandW) / 2)}px)`;
+    const mv = ease.io(range(c, 0, 0.6));
+    const rw = R[2] - R[0], rh = R[3] - R[1];
+    const cx = lerp((R[0] + R[2]) / 2, W / 2, mv), cy = lerp((R[1] + R[3]) / 2, H / 2, mv);
+    const bw = lerp(rw, lineW, mv), bh = rh * Math.pow(1.5 / rh, crop);
+    siteFrame.style.clipPath = `inset(${f2(cy - bh / 2)}px ${f2(W - cx - bw / 2)}px ${f2(H - cy - bh / 2)}px ${f2(cx - bw / 2)}px)`;
+    siteFrame.style.transformOrigin = `${f2(cx)}px ${f2(cy)}px`;
     siteFrame.style.transform = `rotate(${f2(180 * turn)}deg)`;
     siteFrame.style.opacity = f2(1 - range(c, 0.86, 1));
 
@@ -488,7 +509,7 @@
     const v = Math.round(255 * bg);
     siteStage.style.backgroundColor = `rgb(${v},${v},${v})`;
     siteStage.dataset.theme = bg > 0.5 ? 'light' : 'dark';
-    siteStage.dataset.media = a > 0.85 && c < 0.7 ? '1' : '0';
+    siteStage.dataset.media = a > 0.85 && e < 0.5 ? '1' : '0';
 
     // D — the line settles at the bottom edge, where the next section begins
     const lv = Math.round(lerp(245, 207, range(c, 0.6, 1)));
@@ -500,6 +521,14 @@
     siteLabel.style.opacity = f2(d);
     siteLabel.style.transform = `translate3d(0, ${f2((1 - d) * 14 * U)}px, 0)`;
   }, 0.1);
+
+  // Video progress follows the scroll. Seeks are queued one at a time, so a
+  // fast scroll doesn't pile them up; until the file loads the poster shows.
+  tickers.push(() => {
+    if (!siteScene.live || !siteVideo.duration || siteVideo.seeking) return;
+    const t = siteVideoT * (siteVideo.duration - 0.05);
+    if (Math.abs(siteVideo.currentTime - t) > 1 / 30) siteVideo.currentTime = t;
+  });
 
   /* ---------------------------------------------------------------------- */
   /* ABOUT — stats swipe left, image pans with them                          */
