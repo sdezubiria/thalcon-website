@@ -146,7 +146,9 @@
   /* ---------------------------------------------------------------------- */
   const hdr = $('.hdr');
   const hdrLogo = $('.hdr__logo');
-  const themeZones = $$('main [data-theme]');
+  // never the header itself: on Framer the whole page sits inside a <main>,
+  // and the header would then keep whatever theme it last had
+  const themeZones = $$('main [data-theme]').filter(z => !hdr.contains(z));
   const navLinks = $$('.hdr__nav a');
   const navTargets = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1)));
   const state = { heroClipTop: Infinity, logoDock: 0, intro: 0, clockInv: -1 };
