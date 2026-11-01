@@ -143,10 +143,8 @@ addPropertyControls(ThalconSite, {
             type: ControlType.Object,
             controls: {
                 value: { type: ControlType.String, title: "Value" },
-                unit: { type: ControlType.String, title: "Unit" },
-                delta: { type: ControlType.String, title: "Comparison" },
+                unit: { type: ControlType.String, title: "Second line" },
                 caption: { type: ControlType.String, title: "Caption", displayTextArea: true },
-                deltaCaption: { type: ControlType.String, title: "Comparison caption", displayTextArea: true },
             },
         },
     },
@@ -159,8 +157,7 @@ addPropertyControls(ThalconSite, {
             controls: {
                 name: { type: ControlType.String, title: "Name", displayTextArea: true },
                 logo: { type: ControlType.ResponsiveImage, title: "Logo" },
-                wordmark: { type: ControlType.String, title: "Wordmark" },
-                note: { type: ControlType.String, title: "Wordmark note" },
+                note: { type: ControlType.String, title: "Note under logo" },
             },
         },
     },

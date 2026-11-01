@@ -17,7 +17,7 @@ The parts the client edits are properties of the component, in Framer's right-ha
 |---|---|
 | Stats | The sustainability slider. Add a stat and the scroll length adjusts. |
 | Stats photo | The photo next to the stats. |
-| Certifications | The Innovation list and its sticky logo. Use a logo, or a wordmark and an optional note. |
+| Certifications | The Innovation names and their logos. Each has a logo and an optional note under it. |
 | Partners | The partner logo grid. The logo width is in design units (1/1512 of the page). |
 | Jobs | The careers accordion. The CV link emails the address given, with the job title in the subject. |
 | Hero video | The hero video file. The repo doesn't have `assets/video/thalcon-hero.mp4` yet. |

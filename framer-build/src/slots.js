@@ -12,24 +12,19 @@ const lines = (s) => esc(s).replace(/\n/g, "<br>")
 const src = (img, fallback) => esc(img?.src || fallback || "")
 
 const SLOTS = {
+    // one column per stat; the unit, when there is one, goes on its own line
     statsValues: (p) =>
         p.stats
             .map(
-                (s) => `
-              <div class="stat">
-                <p class="stat__value">${esc(s.value)} <span class="stat__unit">${esc(s.unit)}</span></p>
-                <p class="stat__delta">${esc(s.delta)}</p>
-              </div>`
+                (s, i) => `
+              <div class="stat${i === 0 ? " is-active" : ""}"><p class="stat__value">${esc(s.value)}${s.unit ? ` <span class="stat__unit">${esc(s.unit)}</span>` : ""}</p></div>`
             )
             .join("") + "\n            ",
     statsCaptions: (p) =>
         p.stats
             .map(
-                (s) => `
-              <div class="stat">
-                <p class="stat__caption">${esc(s.caption)}</p>
-                <p class="stat__caption stat__caption--muted">${esc(s.deltaCaption)}</p>
-              </div>`
+                (s, i) => `
+              <div class="stat${i === 0 ? " is-active" : ""}"><p class="stat__caption">${esc(s.caption)}</p></div>`
             )
             .join("") + "\n            ",
     statsImage: (p) => src(p.statsImage, ASSETS["assets/img/aerial-tracks.jpg"]),
@@ -37,11 +32,11 @@ const SLOTS = {
     innovLogos: (p) =>
         p.certifications
             .map((c, i) => {
-                const inner = c.logo?.src
-                    ? `<img src="${src(c.logo)}" alt="">`
-                    : `<span class="innov__wordmark">${esc(c.wordmark || c.name)}${c.note ? `<small>${esc(c.note)}</small>` : ""}</span>`
+                // without a logo, the note (or the name) stands in for it
+                const img = c.logo?.src ? `<img src="${src(c.logo)}" alt="">` : ""
+                const note = c.note || (img ? "" : c.name)
                 return `
-          <div class="innov__logo${i === 0 ? " is-active" : ""}">${inner}</div>`
+            <div class="innov__logo${i === 0 ? " is-active" : ""}">${img}${note ? `<small class="innov__logo-note">${esc(note)}</small>` : ""}</div>`
             })
             .join("") + "\n        ",
     innovItems: (p) =>
@@ -63,7 +58,7 @@ const SLOTS = {
                 const subject = encodeURIComponent(`Application — ${j.title}`)
                 return `
         <li class="job">
-          <button class="job__row" aria-expanded="false">
+          <button class="job__row" aria-haspopup="dialog" aria-expanded="false">
             <span class="job__title">${esc(j.title)}</span>
             <span class="job__meta">
               <span class="job__sub">${esc(j.subtitle)}</span>
@@ -71,10 +66,10 @@ const SLOTS = {
               <svg class="job__arrow" viewBox="0 0 48.3 7.4" aria-hidden="true"><use href="#arrow-path"/></svg>
             </span>
           </button>
-          <div class="job__panel"><div class="job__panel-inner">
+          <div class="job__detail" hidden>
             <p class="job__desc">${esc(j.description)}</p>
             <a class="job__apply" href="mailto:${esc(j.email)}?subject=${subject}">Send your CV</a>
-          </div></div>
+          </div>
         </li>`
             })
             .join("") + "\n      ",
