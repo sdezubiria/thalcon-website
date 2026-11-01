@@ -11,11 +11,14 @@
 //   3. creates or updates that code file
 //   4. makes sure the Home page shows one full-width ThalconSite instance,
 //      with Tablet and Phone breakpoints so phones get device width
+//   5. fills the instance's empty image and video fields with the site's own
+//      files, so Framer's panel shows the images that are on the page
 // Content the client edited on the instance is kept. Nothing is published.
 import { readFile, writeFile, readdir, stat, mkdir } from "node:fs/promises"
-import { join, extname } from "node:path"
+import { join, extname, basename } from "node:path"
 import { connect } from "framer-api"
 import { generate } from "./generate.mjs"
+import { defaults } from "./src/defaults.js"
 
 const args = process.argv.slice(2)
 const flag = (name) => args.includes(name)
@@ -38,6 +41,16 @@ try {
     const cacheFile = join(SITE, "framer-build/.cache", `assets-${info.id ?? info.name}.json`.replace(/[^\w.-]/g, "_"))
     const cache = JSON.parse(await readFile(cacheFile, "utf8").catch(() => "{}"))
     const ASSETS = {}
+    const uploaded = {} // path → the asset uploaded in this run (images as images, videos as files)
+    const upload = async (path) => {
+        if (uploaded[path]) return uploaded[path]
+        const input = { bytes: new Uint8Array(await readFile(join(SITE, path))), mimeType: MIME[extname(path).toLowerCase()] }
+        const name = basename(path)
+        uploaded[path] = path.startsWith("assets/video/")
+            ? await framer.uploadFile({ file: input, name })
+            : await framer.uploadImage({ image: input, name })
+        return uploaded[path]
+    }
     for (const dir of ["assets/img", "assets/video"]) {
         for (const name of await readdir(join(SITE, dir)).catch(() => [])) {
             const ext = extname(name).toLowerCase()
@@ -46,12 +59,7 @@ try {
             const { size, mtimeMs } = await stat(join(SITE, path))
             const key = `${size}:${mtimeMs}`
             if (cache[path]?.key !== key) {
-                const bytes = new Uint8Array(await readFile(join(SITE, path)))
-                const input = { bytes, mimeType: MIME[ext] }
-                const asset = dir.endsWith("video")
-                    ? await framer.uploadFile({ file: input, name })
-                    : await framer.uploadImage({ image: input, name })
-                cache[path] = { key, url: asset.url }
+                cache[path] = { key, url: (await upload(path)).url }
                 console.log(`  uploaded ${path}`)
             }
             ASSETS[path] = cache[path].url
@@ -110,6 +118,36 @@ try {
         const controls = JSON.parse(await readFile(contentFile, "utf8"))
         await framer.setAttributes(instance.id, { controls })
         console.log(`Content: applied ${contentFile}`)
+    }
+
+    /* 5. Image and video fields --------------------------------------------- */
+    // Framer shows an empty field for an image or file that only lives in the
+    // component's defaults. Put the site's own files into every empty one; a
+    // field the client filled is left alone.
+    const current = (await framer.getNode(instance.id)).controls ?? {}
+    const paths = defaults(new Proxy({}, { get: (_, p) => p })) // images come back as { src: path }
+    const changes = {}
+    for (const [key, path] of Object.entries({ heroVideo: "assets/video/thalcon-hero.mp4", siteVideo: "assets/video/site-aerial.mp4" })) {
+        if (!current[key]) changes[key] = await upload(path)
+    }
+    for (const [key, value] of Object.entries(paths)) {
+        if (value?.src && !current[key]) changes[key] = await upload(value.src)
+        if (!Array.isArray(value) || !Array.isArray(current[key])) continue
+        let changed = false
+        const items = []
+        for (const item of current[key]) {
+            const original = value.find((o) => o.name === item.name)
+            if (item.logo || !original?.logo?.src) items.push(item)
+            else {
+                items.push({ ...item, logo: await upload(original.logo.src) })
+                changed = true
+            }
+        }
+        if (changed) changes[key] = items
+    }
+    if (Object.keys(changes).length) {
+        await framer.setAttributes(instance.id, { controls: changes })
+        console.log(`Fields: filled ${Object.keys(changes).join(", ")}`)
     }
 
     console.log(`Done. Open ${projectUrl} and press Preview. Nothing was published.`)

@@ -29,6 +29,15 @@ const SLOTS = {
             .join("") + "\n            ",
     statsImage: (p) => src(p.statsImage, ASSETS["assets/img/aerial-tracks.jpg"]),
     heroVideo: (p) => esc(p.heroVideo || ASSETS["assets/video/thalcon-hero.mp4"] || "assets/video/thalcon-hero.mp4"),
+    heroPoster: (p) => src(p.heroPoster, ASSETS["assets/img/hero-poster.jpg"]),
+    siteVideo: (p) => esc(p.siteVideo || ASSETS["assets/video/site-aerial.mp4"] || "assets/video/site-aerial.mp4"),
+    sitePoster: (p) => src(p.sitePoster, ASSETS["assets/img/site-aerial.jpg"]),
+    // the globe puts one node per state
+    states: (p) =>
+        p.states
+            .map((s) => `
+          <li>${esc(s)}</li>`)
+            .join("") + "\n        ",
     innovLogos: (p) =>
         p.certifications
             .map((c, i) => {

@@ -736,11 +736,12 @@
   const TILT = 0.32; // rad, top of the globe leans toward the viewer
   const MERIDIANS = 6;
   const PARALLELS = [-0.85, -0.45, 0, 0.45, 0.85]; // latitude, rad
-  // Each node's place on the sphere [latitude, longitude] in rad: spread all
-  // the way round (45° apart, nudged) at mixed latitudes, so some are always
-  // on the far side as it turns
+  // One node per state in .nation__states. Each node's place on the sphere
+  // [latitude, longitude] in rad: spread evenly all the way round (nudged)
+  // at mixed latitudes, so some are always on the far side as it turns
+  const STATES = $$('.nation__states li').map(li => li.textContent.trim()).filter(Boolean);
   const NODE_LAT = [0.42, -0.5, 0.75, -0.18, 0.2, -0.72, 0.55, -0.35];
-  const NODE_GEO = NODE_LAT.map((lat, j) => [lat, j * Math.PI / 4 + (j % 2 ? 0.2 : -0.12)]);
+  const NODE_GEO = STATES.map((_, j) => [NODE_LAT[j % NODE_LAT.length], j * 2 * Math.PI / STATES.length + (j % 2 ? 0.2 : -0.12)]);
   const gN = svgEl('g', {}, nmap);
   const eq = svgEl('line', { class: 'eq' }, gN);
   const wireBack = svgEl('path', { class: 'wire wire--back' }, gN);
@@ -749,7 +750,7 @@
   const spokes = NODE_GEO.map(() => svgEl('line', { class: 'spoke' }, gN));
   const pulses = NODE_GEO.map(() => svgEl('rect', { class: 'pulse' }, gN));
   const nodes = NODE_GEO.map(() => svgEl('rect', { class: 'node' }, gN));
-  const labels = NODE_GEO.map(() => { const t = svgEl('text', { class: 'state', 'text-anchor': 'middle' }, gN); t.textContent = 'State'; return t; });
+  const labels = STATES.map(name => { const t = svgEl('text', { class: 'state', 'text-anchor': 'middle' }, gN); t.textContent = name; return t; });
   const hub = svgEl('rect', { class: 'node' }, gN);
   let nationP = 0;
 

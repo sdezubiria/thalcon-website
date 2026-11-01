@@ -7,8 +7,9 @@
    files and run `npm run deploy` again.
 
    The markup, styles and scroll engine are the site's own, so the page
-   behaves exactly like the HTML version. The lists the client edits (stats,
-   certifications, partners, jobs) are properties of this component.
+   behaves exactly like the HTML version. What the client edits (stats,
+   certifications, partners, jobs, globe states, videos and photos) are
+   properties of this component.
    ========================================================================== */
 import { addPropertyControls, ControlType, RenderTarget } from "framer"
 import { useEffect, useMemo, useRef } from "react"
@@ -95,11 +96,12 @@ function withLogos(list, originals) {
 export default function ThalconSite(props) {
     const d = ThalconSite.defaultProps
     const p = { ...d, ...props }
-    p.statsImage = p.statsImage?.src ? p.statsImage : d.statsImage
+    for (const k of ["heroPoster", "sitePoster", "statsImage"]) p[k] = p[k]?.src ? p[k] : d[k]
+    p.states = p.states?.length ? p.states : d.states
     p.certifications = withLogos(p.certifications, d.certifications)
     p.partners = withLogos(p.partners, d.partners)
     const onCanvas = RenderTarget.current() === RenderTarget.canvas || RenderTarget.current() === RenderTarget.thumbnail
-    const html = useMemo(() => renderMarkup(p), [p.stats, p.statsImage, p.certifications, p.partners, p.jobs, p.heroVideo])
+    const html = useMemo(() => renderMarkup(p), [p.stats, p.statsImage, p.certifications, p.partners, p.jobs, p.states, p.heroVideo, p.heroPoster, p.siteVideo, p.sitePoster])
     const ref = useRef(null)
 
     useEffect(() => {
@@ -188,5 +190,14 @@ addPropertyControls(ThalconSite, {
             },
         },
     },
+    states: {
+        type: ControlType.Array,
+        title: "Globe states",
+        maxCount: 16,
+        control: { type: ControlType.String, title: "State" },
+    },
     heroVideo: { type: ControlType.File, title: "Hero video", allowedFileTypes: ["mp4", "webm"] },
+    heroPoster: { type: ControlType.ResponsiveImage, title: "Hero video poster" },
+    siteVideo: { type: ControlType.File, title: "Site video", allowedFileTypes: ["mp4", "webm"] },
+    sitePoster: { type: ControlType.ResponsiveImage, title: "Site video poster" },
 })

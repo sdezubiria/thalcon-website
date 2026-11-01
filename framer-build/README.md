@@ -20,7 +20,9 @@ The parts the client edits are properties of the component, in Framer's right-ha
 | Certifications | The Innovation names and their logos. Each has a logo and an optional note under it. |
 | Partners | The partner logo grid. The logo width is in design units (1/1512 of the page). |
 | Jobs | The careers accordion. The CV link emails the address given, with the job title in the subject. |
-| Hero video | The hero video file. The repo doesn't have `assets/video/thalcon-hero.mp4` yet. |
+| Globe states | The labels around the globe in "Working Nation Wide", one node each. Add or remove one and the nodes respace. |
+| Hero video, Hero video poster | The video in the opening frame, and the image shown until it loads. |
+| Site video, Site video poster | The aerial video that plays with the scroll before Sustainability, and its first-frame image. |
 
 Everything else (headings, body copy, the animated scenes) comes from `index.html`. To change it, edit the site files and deploy again.
 
@@ -53,7 +55,8 @@ The deploy:
 - uploads `assets/`, once per project;
 - generates and type-checks the component, then creates or updates the code file;
 - puts one full-width instance on the Home page;
-- adds Tablet and Phone breakpoints, so phones get device width.
+- adds Tablet and Phone breakpoints, so phones get device width;
+- fills any empty image or video field on the instance with the site's own file, so the panel shows the real images.
 
 It never publishes. Content the client edited on the instance is kept.
 

@@ -17,6 +17,8 @@ export const defaults = (ASSETS) => {
             { value: "10,888\u00a0t", unit: "→ 7,476\u00a0t", caption: "Total GWP on a 40,000 CY slab on grade: baseline vs. our mix" },
             { value: "−3,412\u00a0t", unit: "", caption: "less CO₂e on a single placement" },
         ],
+        heroPoster: img("assets/img/hero-poster.jpg"),
+        sitePoster: img("assets/img/site-aerial.jpg"),
         statsImage: img("assets/img/aerial-tracks.jpg", "Aerial view of tire tracks across a graded site"),
         certifications: [
             { name: "National Ready Mixed Concrete Association", logo: img("assets/img/logo-nrmca.png"), note: "" },
@@ -29,6 +31,7 @@ export const defaults = (ASSETS) => {
             { name: "RHa", logo: img("assets/img/logo-rha.png"), logoWidth: 286, logoHeight: 92 },
             { name: "Kimera", logo: img("assets/img/logo-kimera.png"), logoWidth: 212, logoHeight: 208 },
         ],
+        states: Array(8).fill("State"),
         jobs: ["Mechanic", "Sales Marketing", "Procurement", "Product Development"].map(job),
     }
 }
