@@ -52,7 +52,6 @@ export async function segments() {
     const regions = [
         ["statsValues", tracks],
         ["statsCaptions", inner(body, '<div class="stats__track">', tracks[1])],
-        ["statsDots", inner(body, '<div class="stats__dots" aria-hidden="true">')],
         ["statsImage", attr(body, '<img class="about__img" src="', "assets/img/aerial-tracks.jpg")],
         ["heroVideo", attr(body, '<source src="', "assets/video/thalcon-hero.mp4")],
         ["innovLogos", inner(body, '<div class="innov__logos" aria-hidden="true">')],

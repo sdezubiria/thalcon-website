@@ -32,7 +32,6 @@ const SLOTS = {
               </div>`
             )
             .join("") + "\n            ",
-    statsDots: (p) => p.stats.map(() => "<span></span>").join(""),
     statsImage: (p) => src(p.statsImage, ASSETS["assets/img/aerial-tracks.jpg"]),
     heroVideo: (p) => esc(p.heroVideo || ASSETS["assets/video/thalcon-hero.mp4"] || "assets/video/thalcon-hero.mp4"),
     innovLogos: (p) =>

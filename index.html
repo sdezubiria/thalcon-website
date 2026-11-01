@@ -157,9 +157,13 @@
     <div class="light">
       <span class="light__axis" aria-hidden="true"></span>
 
-    <!-- SUSTAINABILITY / ABOUT — four stat columns slide left one at a time as you scroll; the
-         one arriving in the left column turns black, the rest stay grey; the image pans with them -->
+    <!-- SUSTAINABILITY → INNOVATION — one pinned 2×2 grid (centre axis + the rule).
+         First the four stat columns slide left one at a time (the one arriving on
+         the left turns black) while the image pans; then the quadrants hand over
+         to Innovation: title and note top left, the logo bottom left, the names
+         stepping up the right side, each resting on the rule -->
     <section class="about scene" id="sustainability" data-scene="about">
+      <span class="about__anchor" id="innovation" aria-hidden="true"></span>
       <div class="scene__stage about__stage">
         <span class="vline vline--stats" aria-hidden="true"></span>
         <div class="about__top">
@@ -187,32 +191,23 @@
               <div class="stat"><p class="stat__caption">less CO₂e on a single placement</p></div>
             </div>
           </div>
-          <div class="stats__dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-          <p class="label about__next">why us</p>
         </div>
-      </div>
-    </section>
 
-    <!-- INNOVATION — pinned for one screen; the left side holds while the
-         names scroll up the right side, fading in and out at the edges -->
-    <section class="innov scene" id="innovation" data-scene="innov">
-      <div class="scene__stage innov__stage">
-        <span class="rule innov__rule" aria-hidden="true"></span>
-        <div class="innov__side">
+        <div class="innov">
           <h2 class="innov__title" data-split>Innovation</h2>
-          <p class="innov__lede" data-reveal>Constantly engaged in industry development, with a forward push for lower-carbon concrete.</p>
+          <p class="label innov__lede" data-reveal>Constantly engaged in industry development, with a forward push for lower-carbon concrete.</p>
           <div class="innov__logos" aria-hidden="true">
             <div class="innov__logo is-active"><img src="assets/img/logo-nrmca.png" alt=""></div>
             <div class="innov__logo"><img src="assets/img/logo-aci.png" alt=""></div>
             <div class="innov__logo"><img src="assets/img/logo-aci.png" alt=""><small class="innov__logo-note">South Florida</small></div>
           </div>
-        </div>
-        <div class="innov__window">
-          <ol class="innov__list">
-            <li class="innov__item is-active">National Ready Mixed Concrete Association</li>
-            <li class="innov__item">American <br>Concrete Institute</li>
-            <li class="innov__item">ACI <br>South Florida</li>
-          </ol>
+          <div class="innov__window">
+            <ol class="innov__list">
+              <li class="innov__item is-active">National Ready Mixed Concrete Association</li>
+              <li class="innov__item">American <br>Concrete Institute</li>
+              <li class="innov__item">ACI <br>South Florida</li>
+            </ol>
+          </div>
         </div>
       </div>
     </section>
@@ -238,7 +233,7 @@
          in and its numbers count up, then the grid shrinks back into the axis -->
     <section class="scale scene" data-scene="scale">
       <div class="scene__stage scale__stage">
-        <div class="scale__grid" aria-hidden="true"></div>
+        <div class="paper scale__grid" aria-hidden="true"></div>
         <div class="scale__frame">
           <h2 class="scale__title">Scale output <br>to the schedule</h2>
           <ul class="scale__notes">
@@ -247,6 +242,7 @@
           </ul>
           <div class="scale__table" role="table" aria-label="Base case vs. doubled output">
             <span class="scale__vline" aria-hidden="true"></span>
+            <span class="scale__vline scale__vline--2" aria-hidden="true"></span>
             <div class="scale__row scale__row--head" role="row"><span role="columnheader"></span><span role="columnheader">Base case</span><span role="columnheader">Double</span></div>
             <div class="scale__row" role="row"><span role="rowheader">CY per pour day</span><span role="cell" data-n="600">600</span><span role="cell" data-n="1200">1200</span></div>
             <div class="scale__row" role="row"><span role="rowheader">Plants in <br>production</span><span role="cell" data-n="1">1</span><span role="cell" data-n="1">1</span></div>
@@ -401,7 +397,5 @@
 
   <script src="illo.js"></script>
   <script src="main.js"></script>
-  <!-- TEST VERSION ONLY: review checklist for meetings. Remove before launch. -->
-  <script src="review.js"></script>
 </body>
 </html>

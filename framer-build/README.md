@@ -15,7 +15,7 @@ The parts the client edits are properties of the component, in Framer's right-ha
 
 | Property | What it controls |
 |---|---|
-| Stats | The sustainability slider. Add a stat and the scroll length and dots adjust. |
+| Stats | The sustainability slider. Add a stat and the scroll length adjusts. |
 | Stats photo | The photo next to the stats. |
 | Certifications | The Innovation list and its sticky logo. Use a logo, or a wordmark and an optional note. |
 | Partners | The partner logo grid. The logo width is in design units (1/1512 of the page). |

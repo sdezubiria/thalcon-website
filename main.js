@@ -36,14 +36,18 @@
   /* ---------------------------------------------------------------------- */
   /* Viewport + design unit                                                  */
   /* ---------------------------------------------------------------------- */
-  let W = 0, H = 0, U = 1, mobile = false;
+  let W = 0, H = 0, U = 1, GC = 19, mobile = false;
   const root = document.documentElement;
   function measure() {
     W = root.clientWidth;
     H = root.clientHeight || window.innerHeight; // layout viewport — matches the 100svh stages
     mobile = W < 820;
     U = mobile ? W / 600 : W / 1512;
+    // graph-paper cell (1512 / 80 u), whole pixels so the repeating lines
+    // and the rules placed on them land on the same pixel
+    GC = Math.max(1, Math.round(1512 / 80 * U));
     root.style.setProperty('--u', U + 'px');
+    root.style.setProperty('--gc', GC + 'px');
   }
   measure();
 
@@ -92,8 +96,9 @@
       io.unobserve(e.target);
     });
   }, { rootMargin: '0px 0px -12% 0px' });
+  // (Innovation's title and note are driven by the Sustainability scene on desktop)
   $$('[data-split], [data-reveal], [data-reveal-list], .partners__grid').forEach(el => {
-    if (!el.closest('.hero')) io.observe(el);
+    if (!el.closest('.hero') && !(el.closest('.innov') && !mobile)) io.observe(el);
   });
 
   /* ---------------------------------------------------------------------- */
@@ -534,38 +539,24 @@
   });
 
   /* ---------------------------------------------------------------------- */
-  /* ABOUT — stat columns slide left one at a time, image pans with them    */
+  /* SUSTAINABILITY → INNOVATION — one pinned 2×2 grid. The stat columns     */
+  /* slide left one at a time, then the quadrants hand over to Innovation    */
+  /* and its names step up the right side, each resting on the rule.         */
   /* ---------------------------------------------------------------------- */
+  const STATS_END = 0.52, INNOV_IN = 0.62; // scroll split; .about__anchor sits at INNOV_IN
   const tracks = $$('.about .stats__track');
   const statCols = tracks.map(t => [...t.children]);
   const aboutImg = $('.about__img');
-  const statDots = $$('.stats__dots span');
+  const aboutMedia = $('.about__media');
+  const aboutOut = $$('.about__title, .about__source, .stats');
+  const statsLine = $('.vline--stats');
   const nSlides = $$('.stats--values .stat').length;
-  let dotIdx = -1;
+  let statIdx = -1;
 
-  addScene($('.about'), p => {
-    if (mobile) return;
-    let pos = 0;
-    const seg = 1 / Math.max(1, nSlides - 1);
-    for (let k = 1; k < nSlides; k++) {
-      const a = (k - 1) * seg;
-      pos += ease.io(range(p, a + seg * 0.28, a + seg * 0.72));
-    }
-    // one column (376u) per step; the column arriving on the left turns black
-    tracks.forEach(t => { t.style.transform = `translate3d(${f2(-pos * 376 * U)}px, 0, 0)`; });
-    // the photo pans steadily with the scroll (no zoom pulse between steps)
-    aboutImg.style.transform = `translate3d(0, ${f2(-p * 30.4)}%, 0)`;
-    const idx = Math.round(pos);
-    if (idx !== dotIdx) {
-      dotIdx = idx;
-      statDots.forEach((d, i) => d.classList.toggle('on', i === idx));
-      statCols.forEach(cols => cols.forEach((c, i) => c.classList.toggle('is-active', i === idx)));
-    }
-  }, 0.09);
-
-  /* ---------------------------------------------------------------------- */
-  /* INNOVATION — active body + its logo                                     */
-  /* ---------------------------------------------------------------------- */
+  const innovTitle = $('.innov__title');
+  const innovLede = $('.innov__lede');
+  const innovLogosBox = $('.innov__logos');
+  const innovWindow = $('.innov__window');
   const innovItems = $$('.innov__item');
   const innovLogos = $$('.innov__logo');
   const innovList = $('.innov__list');
@@ -576,20 +567,60 @@
     innovItems.forEach((it, i) => it.classList.toggle('is-active', i === idx));
     innovLogos.forEach((l, i) => l.classList.toggle('is-active', i === idx));
   };
-  // Desktop: the list scrolls up through the pinned right half; the item
-  // nearest the middle is the active one
-  addScene($('.innov'), p => {
-    if (mobile) return;
-    const lh = innovList.offsetHeight;
-    const y = lerp(H * 0.5 - innovItems[0].offsetHeight / 2, H * 0.5 - lh + innovItems[innovItems.length - 1].offsetHeight / 2, ease.io2(range(p, 0.04, 0.96)));
-    innovList.style.transform = `translate3d(0, ${f2(y)}px, 0)`;
-    let idx = 0, best = Infinity;
-    innovItems.forEach((it, i) => {
-      const d = Math.abs(y + it.offsetTop + it.offsetHeight / 2 - H * 0.5);
-      if (d < best) { best = d; idx = i; }
+  // steps 0 → n-1 over t, each one easing through the middle of its share
+  const steps = (t, n) => {
+    let pos = 0;
+    const seg = 1 / Math.max(1, n - 1);
+    for (let k = 1; k < n; k++) pos += ease.io(range(t, (k - 1 + 0.28) * seg, (k - 1 + 0.72) * seg));
+    return pos;
+  };
+
+  addScene($('.about'), p => {
+    if (mobile) {
+      // static layout on mobile: drop anything a desktop render left inline
+      [...aboutOut, statsLine, aboutMedia, innovLogosBox, innovWindow, innovList].forEach(el => { el.style.opacity = el.style.transform = el.style.clipPath = ''; });
+      innovTitle.classList.add('is-in');
+      innovLede.classList.add('is-in');
+      return;
+    }
+    // stats: one column (376u) per step; the column arriving on the left turns black
+    const ps = range(p, 0, STATS_END);
+    const pos = steps(ps, nSlides);
+    tracks.forEach(t => { t.style.transform = `translate3d(${f2(-pos * 376 * U)}px, 0, 0)`; });
+    // the photo pans steadily with the scroll (no zoom pulse between steps)
+    aboutImg.style.transform = `translate3d(0, ${f2(-ps * 30.4)}%, 0)`;
+    const idx = Math.round(pos);
+    if (idx !== statIdx) {
+      statIdx = idx;
+      statCols.forEach(cols => cols.forEach((c, i) => c.classList.toggle('is-active', i === idx)));
+    }
+
+    // hand-over: the lines hold; the stats lift away, the photo rolls up
+    // into the rule and the column line drops into it, then Innovation
+    // rises into the same quadrants
+    const span = INNOV_IN - STATS_END;
+    const out = ease.io(range(p, STATS_END, STATS_END + span * 0.6));
+    const inn = ease.out(range(p, STATS_END + span * 0.4, INNOV_IN));
+    aboutOut.forEach(el => {
+      el.style.opacity = f2(1 - out);
+      el.style.transform = `translate3d(0, ${f2(-out * 24 * U)}px, 0)`;
     });
-    setInnov(idx);
-  }, 0.1);
+    statsLine.style.transform = `scaleY(${(1 - out).toFixed(4)})`;
+    aboutMedia.style.clipPath = out > 0 ? `inset(0 0 ${f2(out * 100)}% 0)` : '';
+    innovTitle.classList.toggle('is-in', inn > 0.25);
+    innovLede.classList.toggle('is-in', inn > 0.3);
+    innovLogosBox.style.opacity = innovWindow.style.opacity = f2(inn);
+    innovLogosBox.style.transform = `translate3d(0, ${f2((1 - inn) * 24 * U)}px, 0)`;
+
+    // names: the active one hangs from the rule, level with its logo; the
+    // ones before it have slid up under the rule
+    const ip = steps(range(p, INNOV_IN, 1), innovItems.length);
+    const restY = i => -innovItems[i].offsetTop;
+    const i0 = Math.min(Math.floor(ip), innovItems.length - 1);
+    const y = lerp(restY(i0), restY(Math.min(i0 + 1, innovItems.length - 1)), ip - i0) + (1 - inn) * 120 * U;
+    innovList.style.transform = `translate3d(0, ${f2(y)}px, 0)`;
+    setInnov(Math.round(ip));
+  }, 0.09);
   tickers.push(() => {
     if (!mobile) return;
     let idx = 0;
@@ -635,6 +666,7 @@
       // static layout on mobile: drop anything a desktop render left inline
       [scaleTitle, scaleNotes, scaleFrame].forEach(el => { el.style.opacity = el.style.transform = ''; });
       [scaleTable, ...scaleRows].forEach(el => { el.style.removeProperty('--k'); el.style.removeProperty('--t'); });
+      scaleTable.style.top = '';
       return;
     }
     const open = ease.io(range(p, 0.02, 0.22));
@@ -645,7 +677,14 @@
     // cartesian plane, then settle back into an even grid.
     const g = open * (1 - close);
     const mid = Math.sin(Math.PI * g);
-    scaleGrid.style.setProperty('--cell', f2(1512 / 80 * U * lerp(0.2, 1, g)) + 'px');
+    scaleGrid.style.setProperty('--cell', f2(GC * lerp(0.2, 1, g)) + 'px');
+    // the table's rules sit on grid lines: its top is a whole number of
+    // cells above the centre line, ten normally, more on short screens so
+    // the last rule and a cell of the divider below it stay on screen
+    let n = Math.max(10, Math.ceil((31 * GC + 24 * U - H / 2) / GC));
+    n = Math.min(n, Math.floor((H / 2 - 72 * U) / GC));
+    const frameTop = Math.max(110 * U, H / 2 - 382 * U);
+    scaleTable.style.top = f2(H / 2 - n * GC - frameTop) + 'px';
     scaleGrid.style.setProperty('--minor', (0.105 * range(g, 0.35, 1)).toFixed(3));
     scaleGrid.style.setProperty('--major', (0.1 * mid).toFixed(3));
     scaleGrid.style.setProperty('--axis', (0.17 * mid).toFixed(3));

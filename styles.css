@@ -17,6 +17,8 @@
   --f-tag: "Afacad Flux", "Poppins", sans-serif;
   --f-mono: "Sometype Mono", ui-monospace, monospace;
 
+  --gc: calc(1512 / 80 * var(--u)); /* graph-paper cell; main.js rounds it to whole px */
+
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   --ease-io: cubic-bezier(.65, 0, .35, 1);
   --gutter: calc(40 * var(--u));
@@ -70,6 +72,28 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   transform-origin: left center;
 }
 .rule--draw { transform: scaleX(0); }
+
+/* Graph paper in two weights (every fifth line is major), used by Scale
+   output, which animates the vars from JS. A line always sits on the centre
+   axis (x 756u) and on the vertical centre. */
+.paper {
+  --cell: var(--gc);
+  --minor: .105;
+  --major: 0;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, var(--major)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, var(--major)) 1px, transparent 1px),
+    linear-gradient(to right, rgba(0, 0, 0, var(--minor)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, var(--minor)) 1px, transparent 1px);
+  background-size:
+    calc(var(--cell) * 5) calc(var(--cell) * 5), calc(var(--cell) * 5) calc(var(--cell) * 5),
+    var(--cell) var(--cell), var(--cell) var(--cell);
+  background-position: calc(756 * var(--u)) 50vh;
+  background-position: calc(756 * var(--u)) 50svh;
+}
 
 /* Scenes: a tall wrapper with a pinned, viewport-sized stage */
 .scene { position: relative; }
@@ -211,24 +235,25 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .hdr__logo svg { width: 100%; height: auto; }
 
+/* Figma: the metadata style (Sometype Mono 14), spread from 950u to the gutter */
 .hdr__nav {
   position: absolute;
-  left: calc(768 * var(--u));
+  left: calc(950 * var(--u));
   right: var(--gutter);
-  top: calc(35.5 * var(--u));
+  top: calc(37.5 * var(--u));
   display: flex;
-  gap: calc(58 * var(--u));
+  justify-content: space-between;
 }
 .hdr__nav a {
   position: relative;
-  font-family: var(--f-tag);
-  font-weight: 600;
-  font-size: calc(16 * var(--u));
-  line-height: .9;
+  font-family: var(--f-mono);
+  font-weight: 400;
+  font-size: calc(14 * var(--u));
+  line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
 }
-.hdr__nav a:last-child { margin-left: auto; }
+.hdr__nav a:last-child { font-weight: 700; }
 .hdr__nav a::after {
   content: "";
   position: absolute;
@@ -520,13 +545,17 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   pointer-events: none;
 }
 
-/* About / sustainability */
-.about { height: calc(900 * var(--u) + 230vh); }
+/* Sustainability → Innovation: one pinned 2×2 grid. The centre axis and the
+   rule (470u down) hold still while the stats hand over to Innovation; JS
+   splits the scroll: stats to 52%, hand-over to 62%, then the names. */
+.about { height: calc(900 * var(--u) + 430vh); }
+/* where Innovation is fully in (62% of the pinned scroll), for the nav link */
+.about__anchor { position: absolute; left: 0; top: calc((900 * var(--u) + 330vh) * .62); }
 /* pinned flush with the bottom edge, but never closer than 64u to the top,
    so the title clears the nav on short screens */
 .about__stage { overflow: visible; height: auto; top: max(calc(64 * var(--u)), calc(100vh - 900 * var(--u))); }
 .vline { position: absolute; width: var(--hair); background: var(--line); }
-.vline--stats { left: calc(1132 * var(--u)); top: 0; height: calc(900 * var(--u)); }
+.vline--stats { left: calc(1132 * var(--u)); top: 0; height: calc(900 * var(--u)); transform-origin: bottom; }
 .about__top { position: relative; height: calc(470 * var(--u)); }
 .about__title {
   position: absolute;
@@ -547,10 +576,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .stats--values { bottom: calc(34 * var(--u)); }
 .stats__track { display: flex; will-change: transform; }
 .stats--values .stats__track { align-items: flex-end; }
-.stat { flex: 0 0 calc(376 * var(--u)); text-align: center; color: var(--grey); transition: color .5s linear; }
+.stat { flex: 0 0 calc(376 * var(--u)); color: var(--grey); transition: color .5s linear; }
 .stat.is-active { color: var(--ink); }
 .stat__value {
-  padding: 0 calc(16 * var(--u));
+  padding: 0 calc(16 * var(--u)) 0 calc(21 * var(--u));
   font-family: var(--f-display);
   font-weight: 600;
   font-size: calc(68 * var(--u));
@@ -560,34 +589,33 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .stat__unit { display: block; }
 .about__rule { width: auto; margin-right: var(--gutter); margin-left: calc(-8 * var(--u)); }
 .about__bottom { position: relative; height: calc(430 * var(--u)); }
-.about__media { position: absolute; left: 0; top: 0; width: calc(756 * var(--u)); height: calc(372 * var(--u)); overflow: hidden; background: #e8e2d8; }
+/* the photo fills the bottom-left quadrant, down to the bottom edge */
+.about__media { position: absolute; left: 0; top: 0; bottom: 0; width: calc(756 * var(--u)); overflow: hidden; background: #e8e2d8; }
 .about__img { position: absolute; left: 0; top: 0; width: 100%; height: 146%; object-fit: cover; will-change: transform; }
 .stats--captions { top: calc(246 * var(--u)); }
-.stat__caption { font-weight: 500; font-size: calc(30 * var(--u)); line-height: 1.2; padding: 0 calc(20 * var(--u)); }
-.stats__dots { position: absolute; left: calc(1132 * var(--u) + 24 * var(--u)); top: calc(24 * var(--u)); display: flex; gap: calc(8 * var(--u)); }
-.stats__dots span { width: calc(7 * var(--u)); height: calc(7 * var(--u)); border: 1px solid var(--ink); transition: background-color .4s linear; }
-.stats__dots span.on { background: var(--ink); }
-.about__next { position: absolute; left: var(--gutter); bottom: calc(14 * var(--u)); }
+.stat__caption { font-weight: 500; font-size: calc(30 * var(--u)); line-height: 1.2; padding: 0 calc(20 * var(--u)) 0 calc(21 * var(--u)); }
 
-/* Innovation */
-.innov { height: 200vh; }
-.innov__rule { position: absolute; left: calc(-4 * var(--u)); top: 0; }
-.innov__side { position: absolute; left: 0; top: 0; bottom: 0; width: calc(756 * var(--u)); }
+/* Innovation, in the same quadrants: title and note top left (where the
+   stats title and source were); below the rule the logo (where the photo
+   was) sits level with its name, which hangs from the rule on the right.
+   The top-right square stays empty: names slide up under the rule. */
+.innov { position: absolute; inset: 0; pointer-events: none; }
 .innov__title {
   position: absolute;
   left: var(--gutter);
-  top: calc(110 * var(--u));
+  top: calc(46 * var(--u));
   font-family: var(--f-display);
   font-weight: 600;
   font-size: calc(68 * var(--u));
-  line-height: 1.177;
+  line-height: 1.12;
   text-transform: uppercase;
 }
-.innov__lede { position: absolute; left: var(--gutter); top: calc(210 * var(--u)); width: calc(420 * var(--u)); font-weight: 500; font-size: calc(22 * var(--u)); line-height: 1.17; }
-.innov__logos { position: absolute; left: calc(213 * var(--u)); top: calc(50% + 40 * var(--u)); width: calc(330 * var(--u)); height: calc(255 * var(--u)); margin-top: calc(-128 * var(--u)); }
+/* bottom sits 29u above the rule, like the source note */
+.innov__lede { position: absolute; left: var(--gutter); bottom: calc(100% - 441 * var(--u)); width: calc(380 * var(--u)); line-height: 1.2; }
+.innov__logos { position: absolute; left: var(--gutter); top: calc(503 * var(--u)); width: calc(266 * var(--u)); height: calc(260 * var(--u)); }
 .innov__logo {
   position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;
   opacity: 0;
   transform: translate3d(0, calc(16 * var(--u)), 0) scale(.98);
   transition: opacity .45s var(--ease-out), transform .6s var(--ease-out);
@@ -597,23 +625,22 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .innov__logo-note { font-family: var(--f-mono); font-size: calc(14 * var(--u)); text-transform: uppercase; margin-top: calc(10 * var(--u)); }
 .innov__window {
   position: absolute;
-  left: calc(756 * var(--u)); right: 0; top: 0; bottom: 0;
+  left: calc(756 * var(--u)); right: 0; top: calc(470 * var(--u)); bottom: 0;
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent);
-  mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent);
+  -webkit-mask-image: linear-gradient(#000 60%, transparent);
+  mask-image: linear-gradient(#000 60%, transparent);
 }
 .innov__list { will-change: transform; }
 .innov__item {
   position: relative;
-  padding: calc(30 * var(--u)) var(--gutter) calc(14 * var(--u)) calc(21 * var(--u));
-  min-height: calc(174 * var(--u));
+  padding: calc(20 * var(--u)) var(--gutter) calc(16 * var(--u)) calc(21 * var(--u));
   font-weight: 600;
   font-size: calc(55 * var(--u));
   line-height: 1.177;
   color: var(--mute);
   transition: color .3s linear;
 }
-.innov__item::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: var(--hair); background: var(--line); }
+.innov__item::after { content: ""; position: absolute; left: 0; right: var(--gutter); bottom: 0; height: var(--hair); background: var(--line); }
 .innov__item.is-active { color: var(--ink); }
 
 /* Partners — the stage sits above the centre axis, so the axis runs behind the text */
@@ -640,28 +667,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* Scale output — Figma frame (title top → table bottom = 764u), kept clear of
    the nav: centred on tall screens, squeezed between nav and bottom on short ones */
 .scale { height: 400vh; }
-/* Graph paper in two weights: every fifth line (major) and the horizontal
+/* The graph paper opens out of the axis: the major lines and the horizontal
    axis are only emphasised mid-scale, like a cartesian plane coming into
-   focus; JS sets --cell and the three alphas. A line always sits on the
-   centre axis (x 756u) and on the vertical centre. */
-.scale__grid {
-  --cell: calc(1512 / 80 * var(--u));
-  --minor: 0;
-  --major: 0;
-  --axis: 0;
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(to right, rgba(0, 0, 0, var(--major)) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, var(--major)) 1px, transparent 1px),
-    linear-gradient(to right, rgba(0, 0, 0, var(--minor)) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, var(--minor)) 1px, transparent 1px);
-  background-size:
-    calc(var(--cell) * 5) calc(var(--cell) * 5), calc(var(--cell) * 5) calc(var(--cell) * 5),
-    var(--cell) var(--cell), var(--cell) var(--cell);
-  background-position: calc(756 * var(--u)) 50vh;
-  background-position: calc(756 * var(--u)) 50svh;
-}
+   focus; JS sets --cell and the three alphas. */
+.scale__grid { --cell: calc(var(--gc) * .2); --minor: 0; --axis: 0; }
 .scale__grid::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0, 0, 0, var(--axis)); }
 .scale__frame { position: absolute; left: 0; width: 100%; top: max(calc(110 * var(--u)), calc(50% - 382 * var(--u))); bottom: max(calc(30 * var(--u)), calc(50% - 382 * var(--u))); }
 .scale__title {
@@ -686,22 +695,26 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   text-transform: uppercase;
 }
 .scale__notes li + li { margin-top: calc(17 * var(--u)); }
-.scale__table { position: absolute; left: calc(768 * var(--u)); right: 0; bottom: 0; height: min(calc(581 * var(--u)), 100%); display: flex; flex-direction: column; }
-.scale__table::after { content: ""; flex: 57 1 0; } /* the divider runs on below the last row */
-.scale__vline { position: absolute; left: calc(158 * var(--u)); top: 0; bottom: 0; width: 1px; background: #9c9c9c; transform-origin: top; transform: scaleY(var(--k, 1)); }
+/* The table sits on the graph paper: it starts on the centre axis, each row
+   is one major square (5 cells) tall, the columns break 9 and 28 cells in,
+   and JS sets top so the rules fall on grid lines. The dividers run on
+   3 cells below the last row. */
+.scale__table { position: absolute; left: calc(756 * var(--u)); right: 0; top: 0; height: calc(33 * var(--gc)); }
+.scale__vline { position: absolute; left: calc(9 * var(--gc)); top: 0; bottom: 0; width: 1px; background: #9c9c9c; transform-origin: top; transform: scaleY(var(--k, 1)); }
+.scale__vline--2 { left: calc(28 * var(--gc)); }
 .scale__row {
   position: relative;
   display: grid;
-  grid-template-columns: calc(158 * var(--u)) calc(364 * var(--u)) 1fr;
+  grid-template-columns: calc(9 * var(--gc)) calc(19 * var(--gc)) 1fr;
   align-items: center;
-  flex: 87.4 1 0;
-  min-height: 0;
+  height: calc(5 * var(--gc));
 }
-/* the table's own rules: darker than the grid behind them */
-.scale__row::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: #9c9c9c; transform-origin: left; transform: scaleX(var(--k, 1)); }
+/* the table's own rules: darker than the grid behind them, drawn on the
+   pixel the grid line below the row uses */
+.scale__row::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: #9c9c9c; transform-origin: left; transform: scaleX(var(--k, 1)); }
 .scale__row--head { align-items: end; padding-bottom: calc(30 * var(--u)); }
 .scale__row > span { padding-left: calc(24 * var(--u)); opacity: var(--t, 1); }
-.scale__row > span:first-child { padding-left: 0; }
+.scale__row > span:first-child { padding-left: calc(12 * var(--u)); }
 .scale__row > [role="rowheader"], .scale__row--head > span {
   font-family: var(--f-mono);
   font-weight: 700;
@@ -935,19 +948,20 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .stat__value { font-size: 30px; }
   .stat__caption { font-size: 16px; }
   .about__media { position: relative; width: 100%; height: 60vw; }
-  .vline--stats, .stats__dots { display: none; }
-  .about__next { position: static; padding: 32px var(--gutter) 16px; }
+  .vline--stats { display: none; }
+  .about__anchor { display: none; }
 
-  .innov, .partners { height: auto; margin-top: 0; }
-  .innov__stage, .partners__stage { position: relative; height: auto; }
-  .innov__side, .innov__window { position: static; width: auto; -webkit-mask-image: none; mask-image: none; }
-  .innov__side { padding: 48px var(--gutter) 0; }
-  .innov__title, .innov__lede { position: static; width: auto; }
+  .innov { position: static; padding-top: 48px; pointer-events: auto; }
+  .partners { height: auto; margin-top: 0; }
+  .partners__stage { position: relative; height: auto; }
+  .innov__window { position: static; width: auto; -webkit-mask-image: none; mask-image: none; }
+  .innov__title, .innov__lede { position: static; width: auto; padding: 0 var(--gutter); }
   .innov__title { font-size: 40px; margin-bottom: 20px; }
-  .innov__lede { font-size: 17px; }
+  .innov__lede { font-size: 12px; }
   .innov__list { transform: none !important; padding-bottom: 80px; }
   .partners__stage { padding: 0 0 80px; }
   .innov__logos { position: relative; left: 0; top: 0; width: 60vw; height: 46vw; margin: 24px auto; }
+  .innov__logo { align-items: center; justify-content: center; }
   .innov__item { font-size: 28px; min-height: 0; padding: 20px var(--gutter); }
   .innov__item::after { left: var(--gutter); }
   .innov__logo-note { font-size: 11px; }
@@ -964,12 +978,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .scale__grid { --cell: 19px !important; --minor: .105 !important; --major: 0 !important; --axis: 0 !important; }
   .scale__frame { position: relative; top: auto; bottom: auto; height: auto; padding: 0 var(--gutter); }
   .scale__title, .scale__notes, .scale__table { position: relative; left: 0; top: 0; bottom: auto; width: auto; }
-  .scale__table::after { display: none; }
   .scale__title { font-size: 36px; margin-bottom: 32px; }
   .scale__notes { font-size: 11px; margin-top: 32px; }
   .scale__table { height: auto; }
   .scale__row { grid-template-columns: 38% 1fr 1fr; flex: none; height: 64px; }
   .scale__vline { left: 38%; }
+  .scale__vline--2 { left: 69%; }
   .scale__row > [role="rowheader"], .scale__row--head > span { font-size: 10px; }
   .scale__row > span { padding-left: 12px; }
   .scale__row > [role="cell"] { font-size: 22px; }
