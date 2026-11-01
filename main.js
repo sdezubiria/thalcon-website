@@ -144,7 +144,7 @@
   const themeZones = $$('main [data-theme]');
   const navLinks = $$('.hdr__nav a');
   const navTargets = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1)));
-  const state = { heroClipTop: Infinity, logoDock: 0, intro: 0 };
+  const state = { heroClipTop: Infinity, logoDock: 0, intro: 0, clockInv: -1 };
 
   function updateHeader() {
     hdr.classList.toggle('is-scrolled', window.scrollY > 8);
@@ -159,6 +159,20 @@
     if (state.heroClipTop < y + 40 * U && hero.getBoundingClientRect().bottom > y) { theme = 'dark'; media = true; }
     if (hdr.dataset.theme !== theme) hdr.dataset.theme = theme;
     hdr.classList.toggle('on-media', media);
+
+    // over the clock, the header inverts in step with the page instead of
+    // switching theme on its own a moment later
+    const cr = clockStage.getBoundingClientRect();
+    const overClock = state.clockInv > 0 && state.clockInv < 1 && cr.top <= y && cr.bottom > y;
+    if (overClock) {
+      const bg = Math.round(255 * (1 - state.clockInv)), fg = Math.round(245 * state.clockInv);
+      hdr.style.transition = 'none';
+      hdr.style.color = `rgb(${fg},${fg},${fg})`;
+      hdr.style.setProperty('--hdr-bg', `${bg},${bg},${bg}`);
+    } else if (hdr.style.color) {
+      hdr.style.transition = hdr.style.color = '';
+      hdr.style.removeProperty('--hdr-bg');
+    }
 
     // logo: rides from the hero row up into the header, then stays docked
     const d = state.logoDock;
@@ -193,16 +207,23 @@
   const cursor = $('.cursor');
   if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
     root.classList.add('has-cursor');
-    const c = { x: -50, y: -50, tx: -50, ty: -50 };
+    const c = { x: -50, y: -50, tx: -50, ty: -50, s: 1, ts: 1 };
     window.addEventListener('pointermove', e => {
       c.tx = e.clientX; c.ty = e.clientY;
       if (!cursor.classList.contains('is-on')) { c.x = c.tx; c.y = c.ty; cursor.classList.add('is-on'); }
     }, { passive: true });
     document.addEventListener('pointerleave', () => cursor.classList.remove('is-on'));
+    // grows a little over anything clickable
+    const CLICKABLE = 'a[href], button, [role="button"], label, summary, select, input, textarea';
+    document.addEventListener('pointerover', e => {
+      c.ts = e.target.closest(CLICKABLE) ? 1.6 : 1;
+    }, { passive: true });
     tickers.push((now, dt) => {
       const k = reduceMotion ? 1 : 1 - Math.pow(1 - 0.35, dt);
       c.x += (c.tx - c.x) * k; c.y += (c.ty - c.y) * k;
-      cursor.style.transform = `translate3d(${f2(c.x)}px, ${f2(c.y)}px, 0)`;
+      // scale lives in the same transform, after the translate, so it grows in place
+      c.s += (c.ts - c.s) * (reduceMotion ? 1 : 1 - Math.pow(1 - 0.18, dt));
+      cursor.style.transform = `translate3d(${f2(c.x)}px, ${f2(c.y)}px, 0) scale(${c.s.toFixed(3)})`;
     });
   }
 
@@ -303,6 +324,7 @@
     const phi = 180 * ease.io(range(p, 0.28, 0.54));
     // at 180° the page inverts, ready for the black section that follows
     const inv = ease.io(range(p, 0.46, 0.56));
+    state.clockInv = inv;
     const bg = Math.round(255 * (1 - inv)), fg = Math.round(245 * inv);
     clockStage.style.backgroundColor = inv >= 1 ? 'transparent' : `rgb(${bg},${bg},${bg})`;
     clockStage.style.color = `rgb(${fg},${fg},${fg})`;
@@ -524,7 +546,7 @@
   addScene($('.innov'), p => {
     if (mobile) return;
     const lh = innovList.offsetHeight;
-    const y = lerp(H * 0.5 - innovItems[0].offsetHeight / 2, H * 0.5 - lh + innovItems[innovItems.length - 1].offsetHeight / 2, ease.io2(range(p, 0.08, 0.92)));
+    const y = lerp(H * 0.5 - innovItems[0].offsetHeight / 2, H * 0.5 - lh + innovItems[innovItems.length - 1].offsetHeight / 2, ease.io2(range(p, 0.04, 0.96)));
     innovList.style.transform = `translate3d(0, ${f2(y)}px, 0)`;
     let idx = 0, best = Infinity;
     innovItems.forEach((it, i) => {
@@ -543,13 +565,19 @@
   /* ---------------------------------------------------------------------- */
   /* PARTNERS — head holds, the four logos rise into place                   */
   /* ---------------------------------------------------------------------- */
+  // Parallax: the two centre logos lead and travel less; the outer two start
+  // lower and later. Once landed they keep drifting at different rates.
   const partnerEls = $$('.partner');
+  const PARTNER_DEPTH = [1, 0, 0, 1]; // 0 = centre (near), 1 = outer (far)
   addScene($('.partners'), p => {
     if (mobile) { partnerEls.forEach(el => { el.style.opacity = el.style.transform = ''; }); return; }
     partnerEls.forEach((el, i) => {
-      const k = ease.out(range(p, 0.12 + i * 0.07, 0.5 + i * 0.07));
+      const d = PARTNER_DEPTH[i];
+      const k = ease.out(range(p, 0.1 + d * 0.12, 0.46 + d * 0.16));
+      const rise = (1 - k) * H * lerp(0.55, 0.95, d);
+      const drift = (p - 0.5) * lerp(-40, -90, d) * U;
       el.style.opacity = f2(range(k, 0, 0.6));
-      el.style.transform = `translate3d(0, ${f2((1 - k) * H * 0.7)}px, 0)`;
+      el.style.transform = `translate3d(0, ${f2(rise + drift)}px, 0)`;
     });
   }, 0.1);
 
@@ -572,11 +600,11 @@
     }
     const open = ease.io(range(p, 0.02, 0.22));
     const close = ease.io(range(p, 0.7, 0.94));
-    // grid: opens sideways out of the centre axis, then shrinks back into it
+    // grid: the way in is the way out reversed. Squares grow out of the
+    // axis while the grid fades in; on the way out they shrink and fade
     const g = open * (1 - close);
-    scaleGrid.style.clipPath = `inset(0 ${f2((1 - g) * 50)}% 0 ${f2((1 - g) * 50)}%)`;
-    scaleGrid.style.setProperty('--cell', f2(1512 / 80 * U * lerp(1, 0.4, close)) + 'px');
-    scaleGrid.style.opacity = f2(1 - range(close, 0.7, 1));
+    scaleGrid.style.setProperty('--cell', f2(1512 / 80 * U * lerp(0.2, 1, g)) + 'px');
+    scaleGrid.style.opacity = f2(g);
 
     // table rules draw in once the grid is open, row by row
     scaleTable.style.setProperty('--k', ease.io(range(p, 0.14, 0.3)).toFixed(4));
@@ -608,25 +636,28 @@
   const wordA = $('.nation__word--a');
   const wordB = $('.nation__word--b');
   const ncopy = $('.nation__copy');
-  // Label centres relative to the map centre (Figma: centre at 756, 10044.8)
-  const NODES = [
-    [-243.97, 80.99], [-138.85, 110.43], [-179.76, -107.24], [-56.77, -159.87],
-    [99.76, -80.15], [271.04, -80.34], [200.63, 10.6], [138.85, 154.76],
-  ];
-  // Wire globe (Figma: 752 × 379): silhouette, meridians that turn about the
-  // vertical axis so it reads as a sphere, and two parallels
+  // Wire globe (Figma outline 752 × 379). A unit sphere, tilted toward the
+  // viewer and turning about its axis, projected with x × 376 and y × 189.5,
+  // so the outline stays the Figma ellipse. Lines and nodes on the far side
+  // are drawn lighter and smaller.
   const GR = [376, 189.5];
+  const TILT = 0.32; // rad, top of the globe leans toward the viewer
   const MERIDIANS = 6;
-  const PARALLELS = [-0.62, 0.62];
+  const PARALLELS = [-0.85, -0.45, 0, 0.45, 0.85]; // latitude, rad
+  // Each node's place on the sphere [latitude, longitude] in rad: spread all
+  // the way round (45° apart, nudged) at mixed latitudes, so some are always
+  // on the far side as it turns
+  const NODE_LAT = [0.42, -0.5, 0.75, -0.18, 0.2, -0.72, 0.55, -0.35];
+  const NODE_GEO = NODE_LAT.map((lat, j) => [lat, j * Math.PI / 4 + (j % 2 ? 0.2 : -0.12)]);
   const gN = svgEl('g', {}, nmap);
   const eq = svgEl('line', { class: 'eq' }, gN);
+  const wireBack = svgEl('path', { class: 'wire wire--back' }, gN);
   const silhouette = svgEl('ellipse', { class: 'ring' }, gN);
-  const meridians = Array.from({ length: MERIDIANS }, () => svgEl('ellipse', { class: 'ring ring--m' }, gN));
-  const parallels = PARALLELS.map(() => svgEl('line', { class: 'eq' }, gN));
-  const spokes = NODES.map(() => svgEl('line', { class: 'spoke' }, gN));
-  const pulses = NODES.map(() => svgEl('rect', { class: 'pulse' }, gN));
-  const nodes = NODES.map(() => svgEl('rect', { class: 'node' }, gN));
-  const labels = NODES.map(() => { const t = svgEl('text', { class: 'state', 'text-anchor': 'middle' }, gN); t.textContent = 'State'; return t; });
+  const wireFront = svgEl('path', { class: 'wire' }, gN);
+  const spokes = NODE_GEO.map(() => svgEl('line', { class: 'spoke' }, gN));
+  const pulses = NODE_GEO.map(() => svgEl('rect', { class: 'pulse' }, gN));
+  const nodes = NODE_GEO.map(() => svgEl('rect', { class: 'node' }, gN));
+  const labels = NODE_GEO.map(() => { const t = svgEl('text', { class: 'state', 'text-anchor': 'middle' }, gN); t.textContent = 'State'; return t; });
   const hub = svgEl('rect', { class: 'node' }, gN);
   let nationP = 0;
 
@@ -652,54 +683,73 @@
 
     // globe ripples out from the hub, then keeps turning (time + scroll)
     const ks = ease.out(range(p, 0.1, 0.5));
+    const A = GR[0] * S * ks, B = GR[1] * S * ks;
     silhouette.setAttribute('cx', f2(cx)); silhouette.setAttribute('cy', f2(cy));
-    silhouette.setAttribute('rx', f2(GR[0] * S * ks)); silhouette.setAttribute('ry', f2(GR[1] * S * ks));
+    silhouette.setAttribute('rx', f2(A)); silhouette.setAttribute('ry', f2(B));
     silhouette.style.opacity = f2(range(ks, 0, 0.25));
-    const km = ease.out(range(p, 0.18, 0.62));
-    const spin = (reduceMotion ? 0 : now / 1000 * (Math.PI * 2 / 48)) + p * Math.PI * 0.75;
-    meridians.forEach((r, i) => {
-      const lon = spin + i * Math.PI / MERIDIANS;
-      r.setAttribute('cx', f2(cx)); r.setAttribute('cy', f2(cy));
-      r.setAttribute('rx', f2(GR[0] * S * ks * Math.abs(Math.sin(lon))));
-      r.setAttribute('ry', f2(GR[1] * S * ks));
-      r.style.opacity = f2(range(km, 0, 0.4) * 0.8);
-    });
-    parallels.forEach((l, i) => {
-      const yk = PARALLELS[i];
-      const hw = GR[0] * S * ks * Math.sqrt(1 - yk * yk) * km;
-      l.setAttribute('x1', f2(cx - hw)); l.setAttribute('x2', f2(cx + hw));
-      l.setAttribute('y1', f2(cy + yk * GR[1] * S * ks)); l.setAttribute('y2', f2(cy + yk * GR[1] * S * ks));
-      l.style.opacity = f2(range(km, 0, 0.4));
-    });
+    const spin = (reduceMotion ? 0 : now / 1000 * (Math.PI * 2 / 60)) + p * Math.PI * 0.6;
+    const ct = Math.cos(TILT), st = Math.sin(TILT);
+    // unit-sphere point → [screen x, screen y, depth (-1 back … 1 front)]
+    const proj = (ux, uy, uz) => [cx + A * ux, cy - B * (uy * ct - uz * st), uz * ct + uy * st];
+    const geo = (lat, lon) => proj(Math.cos(lat) * Math.sin(lon), Math.sin(lat), Math.cos(lat) * Math.cos(lon));
+
+    // wireframe: each curve is split into the half facing us and the half behind
+    let dF = '', dB = '';
+    const curve = pt => {
+      const N = 72;
+      let prev = pt(0), last = '';
+      for (let i = 1; i <= N; i++) {
+        const cur = pt(i / N * Math.PI * 2);
+        const side = prev[2] + cur[2] >= 0 ? 'F' : 'B';
+        const seg = (side === last ? '' : `M${f2(prev[0])} ${f2(prev[1])}`) + `L${f2(cur[0])} ${f2(cur[1])}`;
+        if (side === 'F') dF += seg; else dB += seg;
+        last = side; prev = cur;
+      }
+    };
+    if (ks > 0) {
+      for (let k = 0; k < MERIDIANS; k++) {
+        const lon = spin + k * Math.PI / MERIDIANS, sl = Math.sin(lon), cl = Math.cos(lon);
+        curve(t => proj(Math.cos(t) * sl, Math.sin(t), Math.cos(t) * cl));
+      }
+      PARALLELS.forEach(lat => curve(t => geo(lat, t)));
+    }
+    wireFront.setAttribute('d', dF || 'M0 0');
+    wireBack.setAttribute('d', dB || 'M0 0');
+    const km = range(ease.out(range(p, 0.18, 0.62)), 0, 0.4);
+    wireFront.style.opacity = f2(km);
+    wireBack.style.opacity = f2(km);
 
     const hs = 9 * S * ease.out(range(p, 0.08, 0.2));
     hub.setAttribute('x', f2(cx - hs / 2)); hub.setAttribute('y', f2(cy - hs / 2));
     hub.setAttribute('width', f2(hs)); hub.setAttribute('height', f2(hs));
 
-    NODES.forEach((n, j) => {
-      const nx = cx + n[0] * S, ny = cy + n[1] * S;
+    NODE_GEO.forEach(([lat, lon], j) => {
+      const [nx, ny, z] = geo(lat, lon + spin);
+      const depth = (z + 1) / 2; // 0 far side … 1 facing us
       const k = ease.io(range(p, 0.36 + j * 0.032, 0.6 + j * 0.032));
       spokes[j].setAttribute('x1', f2(cx)); spokes[j].setAttribute('y1', f2(cy));
       spokes[j].setAttribute('x2', f2(lerp(cx, nx, k))); spokes[j].setAttribute('y2', f2(lerp(cy, ny, k)));
-      spokes[j].style.opacity = k > 0 ? 1 : 0;
+      spokes[j].style.opacity = k > 0 ? f2(lerp(0.15, 1, depth)) : 0;
 
-      const ns = 7 * S * ease.out(range(k, 0.8, 1));
+      const ns = 7 * S * lerp(0.4, 1.15, depth) * ease.out(range(k, 0.8, 1));
       nodes[j].setAttribute('x', f2(nx - ns / 2)); nodes[j].setAttribute('y', f2(ny - ns / 2));
       nodes[j].setAttribute('width', f2(ns)); nodes[j].setAttribute('height', f2(ns));
+      nodes[j].style.opacity = f2(lerp(0.25, 1, depth));
 
       const lo = ease.out(range(p, 0.5 + j * 0.03, 0.66 + j * 0.03));
       labels[j].setAttribute('x', f2(nx));
-      labels[j].setAttribute('y', f2(ny + (n[1] < 0 ? -12 * S : 22 * S) + (1 - lo) * 6 * S));
-      labels[j].style.opacity = f2(lo);
+      labels[j].setAttribute('y', f2(ny + (ny < cy ? -12 * S : 22 * S) + (1 - lo) * 6 * S));
+      labels[j].style.opacity = f2(lo * lerp(0.1, 1, depth * depth));
+      labels[j].style.fontSize = f2(14 * S * lerp(0.75, 1.05, depth)) + 'px';
 
       // supply pulses travelling hub → node once the spoke is drawn
       const live = range(k, 0.95, 1);
       const fr = ((now / 2600) + j * 0.137) % 1;
-      const ps = 4 * S;
+      const ps = 4 * S * lerp(0.6, 1, depth);
       pulses[j].setAttribute('x', f2(lerp(cx, nx, fr) - ps / 2));
       pulses[j].setAttribute('y', f2(lerp(cy, ny, fr) - ps / 2));
       pulses[j].setAttribute('width', f2(ps)); pulses[j].setAttribute('height', f2(ps));
-      pulses[j].style.opacity = f2(live * Math.sin(Math.PI * fr) * 0.85);
+      pulses[j].style.opacity = f2(live * Math.sin(Math.PI * fr) * 0.85 * lerp(0.3, 1, depth));
     });
 
     const co = ease.out(range(p, 0.66, 0.84));

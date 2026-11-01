@@ -143,8 +143,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   position: fixed;
   left: 0; top: 0;
   z-index: 200;
-  width: 9px; height: 9px;
-  margin: -4.5px 0 0 -4.5px;
+  width: 14px; height: 14px;
+  margin: -7px 0 0 -7px;
   background: #fff;
   mix-blend-mode: difference;
   pointer-events: none;
@@ -167,10 +167,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   pointer-events: none;
   transition: color .45s linear;
 }
+.hdr { --hdr-bg: 255, 255, 255; }
 .hdr[data-theme="dark"] { color: var(--bone); --hdr-bg: 0, 0, 0; }
 /* Soft backdrop so content never collides with the nav; off over full-bleed media */
 .hdr::before {
-  --hdr-bg: 255, 255, 255;
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
@@ -179,7 +179,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   opacity: 0;
   transition: opacity .5s linear;
 }
-.hdr[data-theme="dark"]::before { --hdr-bg: 0, 0, 0; }
 .hdr.is-scrolled::before { opacity: 1; }
 .hdr.on-media::before { opacity: 0; }
 .hdr a { pointer-events: auto; }
@@ -500,7 +499,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* About / sustainability */
 .about { height: calc(900 * var(--u) + 130vh); }
-.about__stage { overflow: visible; height: auto; top: calc(100vh - 900 * var(--u)); }
+/* pinned flush with the bottom edge, but never closer than 64u to the top,
+   so the title clears the nav on short screens */
+.about__stage { overflow: visible; height: auto; top: max(calc(64 * var(--u)), calc(100vh - 900 * var(--u))); }
 .vline { position: absolute; width: var(--hair); background: var(--line); }
 .vline--stats { left: calc(1132 * var(--u)); top: 0; height: calc(900 * var(--u)); }
 .about__top { position: relative; height: calc(470 * var(--u)); }
@@ -544,7 +545,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .about__next { position: absolute; left: var(--gutter); bottom: calc(14 * var(--u)); }
 
 /* Innovation */
-.innov { height: 320vh; }
+.innov { height: 200vh; }
 .innov__rule { position: absolute; left: calc(-4 * var(--u)); top: 0; }
 .innov__side { position: absolute; left: 0; top: 0; bottom: 0; width: calc(756 * var(--u)); }
 .innov__title {
@@ -564,9 +565,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   display: flex; align-items: center; justify-content: center;
   opacity: 0;
   transform: translate3d(0, calc(16 * var(--u)), 0) scale(.98);
-  transition: opacity .7s var(--ease-out), transform .9s var(--ease-out);
+  transition: opacity .45s var(--ease-out), transform .6s var(--ease-out);
 }
-.innov__logo.is-active { opacity: 1; transform: none; transition-delay: .12s; }
+.innov__logo.is-active { opacity: 1; transform: none; transition-delay: .06s; }
 .innov__logo img { width: 125%; height: auto; margin-left: -12.5%; }
 .innov__wordmark { font-family: var(--f-display); font-weight: 800; font-size: calc(120 * var(--u)); line-height: .9; letter-spacing: -.02em; text-align: center; color: #3a3a3a; }
 .innov__wordmark small { display: block; font-family: var(--f-mono); font-weight: 400; font-size: calc(14 * var(--u)); letter-spacing: 0; text-transform: uppercase; margin-top: calc(14 * var(--u)); }
@@ -586,7 +587,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   font-size: calc(55 * var(--u));
   line-height: 1.177;
   color: var(--mute);
-  transition: color .6s linear;
+  transition: color .3s linear;
 }
 .innov__item::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: var(--hair); background: var(--line); }
 .innov__item.is-active { color: var(--ink); }
@@ -612,7 +613,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 @media (min-width: 820px) { .partner { transition: none; } } /* driven by scroll */
 .partner:hover img { transform: scale(1.04); }
 
-/* Scale output — Figma frame 1512 × 821, anchored to the bottom of the screen */
+/* Scale output — Figma frame (title top → table bottom = 764u), kept clear of
+   the nav: centred on tall screens, squeezed between nav and bottom on short ones */
 .scale { height: 400vh; }
 .scale__grid {
   --cell: calc(1512 / 80 * var(--u));
@@ -623,14 +625,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     linear-gradient(to bottom, #e4e4e4 1px, transparent 1px);
   background-size: var(--cell) var(--cell);
   background-position: calc(756 * var(--u)) 50%;
-  clip-path: inset(0 50% 0 50%);
-  will-change: clip-path;
+  opacity: 0;
 }
-.scale__frame { position: absolute; left: 0; width: 100%; height: calc(821 * var(--u)); bottom: max(calc(20 * var(--u)), calc(50% - 410 * var(--u))); }
+.scale__frame { position: absolute; left: 0; width: 100%; top: max(calc(110 * var(--u)), calc(50% - 382 * var(--u))); bottom: max(calc(30 * var(--u)), calc(50% - 382 * var(--u))); }
 .scale__title {
   position: absolute;
   left: calc(34 * var(--u));
-  top: calc(27 * var(--u));
+  top: 0;
   font-family: var(--f-display);
   font-weight: 600;
   font-size: calc(68 * var(--u));
@@ -640,7 +641,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .scale__notes {
   position: absolute;
   left: calc(41 * var(--u));
-  top: calc(606 * var(--u));
+  bottom: calc(83 * var(--u));
   width: calc(276 * var(--u));
   font-family: var(--f-mono);
   font-weight: 700;
@@ -649,14 +650,16 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   text-transform: uppercase;
 }
 .scale__notes li + li { margin-top: calc(17 * var(--u)); }
-.scale__table { position: absolute; left: calc(768 * var(--u)); right: 0; top: calc(210 * var(--u)); height: calc(581 * var(--u)); }
+.scale__table { position: absolute; left: calc(768 * var(--u)); right: 0; bottom: 0; height: min(calc(581 * var(--u)), 100%); display: flex; flex-direction: column; }
+.scale__table::after { content: ""; flex: 57 1 0; } /* the divider runs on below the last row */
 .scale__vline { position: absolute; left: calc(158 * var(--u)); top: 0; bottom: 0; width: 1px; background: #9c9c9c; transform-origin: top; transform: scaleY(var(--k, 1)); }
 .scale__row {
   position: relative;
   display: grid;
   grid-template-columns: calc(158 * var(--u)) calc(364 * var(--u)) 1fr;
   align-items: center;
-  height: calc(87.4 * var(--u));
+  flex: 87.4 1 0;
+  min-height: 0;
 }
 /* the table's own rules: darker than the grid behind them */
 .scale__row::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: #9c9c9c; transform-origin: left; transform: scaleX(var(--k, 1)); }
@@ -696,7 +699,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   opacity: 0;
 }
 .nation__map .ring { fill: none; stroke: var(--grey); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.nation__map .ring--m { stroke: #b4b4b4; stroke-width: .75; }
+.nation__map .wire { fill: none; stroke: #b4b4b4; stroke-width: .75; stroke-linejoin: round; }
+.nation__map .wire--back { stroke: #e6e6e6; }
 .nation__map .eq { stroke: var(--grey); stroke-width: .5; }
 .nation__map .spoke { stroke: var(--grey); stroke-width: 1; }
 .nation__map .node { fill: var(--ink); }
@@ -920,13 +924,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
   .scale { height: auto; }
   .scale__stage { position: relative; height: auto; padding: 64px 0; }
-  .scale__grid { clip-path: none !important; }
-  .scale__frame { position: relative; bottom: auto !important; height: auto; padding: 0 var(--gutter); }
-  .scale__title, .scale__notes, .scale__table { position: relative; left: 0; top: 0; width: auto; }
+  .scale__grid { opacity: 1 !important; }
+  .scale__frame { position: relative; top: auto; bottom: auto; height: auto; padding: 0 var(--gutter); }
+  .scale__title, .scale__notes, .scale__table { position: relative; left: 0; top: 0; bottom: auto; width: auto; }
+  .scale__table::after { display: none; }
   .scale__title { font-size: 36px; margin-bottom: 32px; }
   .scale__notes { font-size: 11px; margin-top: 32px; }
   .scale__table { height: auto; }
-  .scale__row { grid-template-columns: 38% 1fr 1fr; height: 64px; }
+  .scale__row { grid-template-columns: 38% 1fr 1fr; flex: none; height: 64px; }
   .scale__vline { left: 38%; }
   .scale__row > [role="rowheader"], .scale__row--head > span { font-size: 10px; }
   .scale__row > span { padding-left: 12px; }
