@@ -257,6 +257,9 @@
   const heroTag = $('.hero__tagline');
   const heroCue = $('.hero__cue');
   const heroVideo = $('.hero__video');
+  const heroRule = $('.hero__rule');
+  const heroTitle = $('.hero__title');
+  const heroLede = $('.hero__lede');
 
   const heroScene = addScene(hero, p => {
     const intro = ease.out5(state.intro);
@@ -281,14 +284,23 @@
     const zoom = 1 + 0.38 * ease.io2(range(p, 0.08, 1));
     const settle = lerp(1.18, 1, intro);
     heroInner.style.transform = `scale(${(zoom * settle).toFixed(4)})`;
+
+    // the intro comes in over the footage once it has nearly opened: the
+    // rule draws, the title rises word by word, then the lede
+    heroRule.style.transform = `scaleX(${ease.out(range(p, 0.5, 0.72)).toFixed(4)})`;
+    heroTitle.classList.toggle('is-in', p > 0.56);
+    const lo = ease.out(range(p, 0.62, 0.76));
+    heroLede.style.opacity = f2(lo);
+    heroLede.style.transform = `translate3d(0, ${f2((1 - lo) * 20 * U)}px, 0)`;
   }, 0.1);
 
-  // Keep the hero video only playing while visible
-  new IntersectionObserver(([e]) => {
-    if (!heroVideo) return;
-    if (e.isIntersecting) heroVideo.play().catch(() => {});
-    else heroVideo.pause();
-  }).observe(hero);
+  // The hero video follows the scroll: it ends in white cloud just as the
+  // hero hands over to the white section below
+  tickers.push(() => {
+    if (!heroVideo || !heroVideo.duration || heroVideo.seeking) return;
+    const t = range(heroScene.sp, 0.08, 1) * (heroVideo.duration - 0.05);
+    if (Math.abs(heroVideo.currentTime - t) > 1 / 30) heroVideo.currentTime = t;
+  });
 
   /* ---------------------------------------------------------------------- */
   /* CLOCK — rule turns counter-clockwise and wipes text A into text B       */
@@ -442,16 +454,14 @@
   });
 
   /* ---------------------------------------------------------------------- */
-  /* SITE — video card grows to full screen and plays with the scroll,      */
-  /* shrinks back to a card with the "~1 acre" figure under it, then spins  */
-  /* 180° into a line                                                        */
+  /* SITE — video card grows to full screen and plays with the scroll; the  */
+  /* "~1 acre" caption rises over the last frame, then it spins into a line */
   /* ---------------------------------------------------------------------- */
   const siteStage = $('.site__stage');
   const siteFrame = $('.site__frame');
   const siteVideo = $('.site__video');
-  const siteStat = $('.site__stat');
-  const siteStatValue = $('.site__stat-value');
-  const siteStatNote = $('.site__stat-note');
+  const siteShade = $('.site__shade');
+  const siteCapLines = $$('.site__caption span');
   const siteLine = $('.site__line');
   const siteLabel = $('.site__label');
   let siteVideoT = 0; // 0–1, how far through the video the scroll has got
@@ -460,34 +470,27 @@
   const siteScene = addScene($('.site'), p => {
     const a = ease.io(range(p, 0.03, 0.22)); // card → full screen
     const b = ease.io(range(p, 0.24, 0.5));  // footage pushes in while it plays
-    const e = ease.io(range(p, 0.52, 0.62)); // full screen → card above the figure
     const c = ease.io(range(p, 0.8, 0.93));  // crop to a line and turn
     const d = ease.io(range(p, 0.93, 0.99)); // line settles at the bottom
-    siteVideoT = range(p, 0.02, 0.5);
+    siteVideoT = range(p, 0.02, 0.52);
 
-    // The visible window onto the footage. A: the 704 × 469 card (Figma),
-    // centred, opens to full screen. E: once the video has played it shrinks
-    // back to a card, with the figure centred under it; the pair is centred
-    // as a group and the card gives up height if the screen is short.
+    // The visible window onto the footage: the 704 × 469 card (Figma),
+    // centred, opens to full screen and stays there, zoomed in, to the end
     const cw0 = Math.min(704 * U, W * 0.86), ch0 = cw0 * 469 / 704;
     const card = [(W - cw0) / 2, (H - ch0) / 2, (W + cw0) / 2, (H + ch0) / 2];
-    const gap = (mobile ? 24 : 40 * U), statH = siteStat.offsetHeight;
-    const top1 = mobile ? 70 : 100 * U;
-    const ch1 = Math.min(ch0, H - top1 - gap - statH - (mobile ? 24 : 40 * U)), cw1 = ch1 * 704 / 469;
-    const gy = Math.max(top1, (H - ch1 - gap - statH) / 2);
-    const shrunk = [(W - cw1) / 2, gy, (W + cw1) / 2, gy + ch1];
-    const R = lerpRect(lerpRect(card, [0, 0, W, H], a), shrunk, e);
-    siteStat.style.top = f2(gy + ch1 + gap) + 'px';
+    const R = lerpRect(card, [0, 0, W, H], a);
 
     siteVideo.style.transform = `scale(${(lerp(1.08, 1, a) * lerp(1, 1.12, b)).toFixed(4)})`;
 
-    // The figure, only after the video: value first, then the note
-    const si = ease.out(range(p, 0.6, 0.68)), ni = ease.out(range(p, 0.63, 0.71));
+    // Once the video has reached its last frame, the caption rises over it,
+    // line by line, and leaves before the footage turns into a line
     const so = ease.io(range(p, 0.75, 0.8));
-    siteStatValue.style.opacity = f2(si * (1 - so));
-    siteStatValue.style.transform = `translate3d(0, ${f2((1 - si) * 40 * U - so * 20 * U)}px, 0)`;
-    siteStatNote.style.opacity = f2(ni * (1 - so));
-    siteStatNote.style.transform = `translate3d(0, ${f2((1 - ni) * 16 * U - so * 20 * U)}px, 0)`;
+    siteShade.style.opacity = f2(ease.out(range(p, 0.54, 0.64)) * (1 - so));
+    siteCapLines.forEach((l, i) => {
+      const k = ease.out(range(p, 0.56 + i * 0.025, 0.66 + i * 0.025));
+      l.style.opacity = f2(k * (1 - so));
+      l.style.transform = `translate3d(0, ${f2((1 - k) * 36 * U - so * 16 * U)}px, 0)`;
+    });
 
     // C — the window crops down to a line while it turns 180° about its own
     // centre, which drifts to the middle of the screen (no squashing: the
@@ -509,7 +512,7 @@
     const v = Math.round(255 * bg);
     siteStage.style.backgroundColor = `rgb(${v},${v},${v})`;
     siteStage.dataset.theme = bg > 0.5 ? 'light' : 'dark';
-    siteStage.dataset.media = a > 0.85 && e < 0.5 ? '1' : '0';
+    siteStage.dataset.media = a > 0.85 && c < 0.3 ? '1' : '0';
 
     // D — the line settles at the bottom edge, where the next section begins
     const lv = Math.round(lerp(245, 207, range(c, 0.6, 1)));
@@ -531,9 +534,10 @@
   });
 
   /* ---------------------------------------------------------------------- */
-  /* ABOUT — stats swipe left, image pans with them                          */
+  /* ABOUT — stat columns slide left one at a time, image pans with them    */
   /* ---------------------------------------------------------------------- */
   const tracks = $$('.about .stats__track');
+  const statCols = tracks.map(t => [...t.children]);
   const aboutImg = $('.about__img');
   const statDots = $$('.stats__dots span');
   const nSlides = $$('.stats--values .stat').length;
@@ -547,12 +551,16 @@
       const a = (k - 1) * seg;
       pos += ease.io(range(p, a + seg * 0.28, a + seg * 0.72));
     }
-    tracks.forEach(t => { t.style.transform = `translate3d(${f2(-pos * 100)}%, 0, 0)`; });
-    const frac = nSlides > 1 ? pos / (nSlides - 1) : 0;
-    const swing = Math.sin(Math.PI * (pos % 1));
-    aboutImg.style.transform = `translate3d(0, ${f2(-frac * 30.4)}%, 0) scale(${(1 + 0.06 * swing).toFixed(4)})`;
+    // one column (376u) per step; the column arriving on the left turns black
+    tracks.forEach(t => { t.style.transform = `translate3d(${f2(-pos * 376 * U)}px, 0, 0)`; });
+    // the photo pans steadily with the scroll (no zoom pulse between steps)
+    aboutImg.style.transform = `translate3d(0, ${f2(-p * 30.4)}%, 0)`;
     const idx = Math.round(pos);
-    if (idx !== dotIdx) { dotIdx = idx; statDots.forEach((d, i) => d.classList.toggle('on', i === idx)); }
+    if (idx !== dotIdx) {
+      dotIdx = idx;
+      statDots.forEach((d, i) => d.classList.toggle('on', i === idx));
+      statCols.forEach(cols => cols.forEach((c, i) => c.classList.toggle('is-active', i === idx)));
+    }
   }, 0.09);
 
   /* ---------------------------------------------------------------------- */

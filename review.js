@@ -14,7 +14,8 @@
   // [label, where to go] — where: [selector, scroll progress through it, extra px]
   const GROUPS = [
     ['General', [
-      ['Líneas divisorias más delgadas y grises', ['.intro', 0, -120]],
+      ['Líneas divisorias más delgadas y grises', ['.offer', 0, 0]],
+      ['Hero: video nuevo con el texto encima', ['.hero', 1, 0]],
       ['Nav en Afacad Flux SemiBold, interlineado reducido', ['body', 0, 0]],
       ['Cursor cuadrado que invierte el color y crece sobre links', null],
       ['Favicon: la marca de Thalcon en líneas', null],
@@ -23,9 +24,10 @@
     ['Recorrido', [
       ['Reloj: a 180° se invierte todo, header incluido', ['.clock', 0.5, 0]],
       ['La línea llega llena a “our offer” y pasa a progreso', ['.clock', 1, 0]],
-      ['Video real con scroll y dato “~1 acre” al terminar', ['.site', 0.66, 0]],
+      ['Video real con scroll y “~1 acre” sobre el último cuadro', ['.site', 0.68, 0]],
       ['“Sustainability” sobre la línea al final del video', ['.site', 0.985, 0]],
       ['Sustainability: líneas fijas, título libre del nav', ['.about', 0.05, 0]],
+      ['Sustainability: 4 columnas que avanzan, la de la izquierda en negro', ['.about', 0.5, 0]],
       ['Innovation fija: los nombres suben con fade', ['.innov', 0.35, 0]],
       ['Strategic Relationships: título fijo, logos con parallax', ['.partners', 0.3, 0]],
       ['Nueva sección Scale output: cuadrícula y números', ['.scale', 0.12, 0]],

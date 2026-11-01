@@ -315,25 +315,31 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .hero__media-inner { position: absolute; inset: 0; will-change: transform; }
 .hero__video { width: 100%; height: 100%; object-fit: cover; }
 
-/* --------------------------------------------------------------------------
-   Intro
-   -------------------------------------------------------------------------- */
-.intro { padding: calc(120 * var(--u)) 0 calc(240 * var(--u)); }
-.intro__grid { position: relative; display: grid; grid-template-columns: calc(728 * var(--u)) 1fr; padding: calc(21 * var(--u)) var(--gutter) 0; }
-.intro__title {
-  width: calc(480 * var(--u));
-  font-family: var(--f-display);
-  font-weight: 800;
-  font-size: calc(40 * var(--u));
-  line-height: .8;
+/* Intro over the footage (Figma: rule 437u above the video's bottom edge,
+   title and lede 21u under it). Outside the zoomed layer, so it holds still. */
+.hero__intro { position: absolute; left: 0; right: 0; bottom: 0; height: calc(437 * var(--u)); color: var(--ink); pointer-events: none; }
+.hero__rule { position: absolute; left: 0; top: 0; width: calc(1472 * var(--u)); height: 1px; background: rgba(0, 0, 0, .55); transform-origin: left; transform: scaleX(0); }
+.hero__title {
+  position: absolute;
+  left: var(--gutter);
+  top: calc(21 * var(--u));
+  width: calc(600 * var(--u));
+  font-family: var(--f-tag);
+  font-weight: 600;
+  font-size: calc(70 * var(--u));
+  line-height: .98;
   text-transform: uppercase;
 }
-.intro__title .w { padding-bottom: .1em; margin-bottom: -.1em; }
-.intro__lede {
+.hero__title .w { padding-bottom: .1em; margin-bottom: -.1em; }
+.hero__lede {
+  position: absolute;
+  left: calc(768 * var(--u));
+  top: calc(22 * var(--u));
   width: calc(330 * var(--u));
   font-weight: 600;
   font-size: calc(22 * var(--u));
   line-height: 1.17;
+  opacity: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -466,19 +472,28 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .site__stage { background: var(--ink); }
 .site__frame { position: absolute; inset: 0; will-change: transform, clip-path; transform-origin: 50% 50%; }
 .site__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #111; will-change: transform; }
-/* The figure shown centred under the video card once the video has played
-   (JS sets top) */
-.site__stat { position: absolute; left: 50%; top: 0; translate: -50% 0; color: var(--bone); text-align: center; }
-.site__stat-value, .site__stat-note { opacity: 0; will-change: transform, opacity; }
-.site__stat-value {
+/* Caption over the last frame of the video (Figma: x 404u, white); a soft
+   shade under it keeps it legible on the bright footage */
+.site__shade { position: absolute; left: 0; right: 0; bottom: 0; height: 55%; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, .45)); opacity: 0; pointer-events: none; }
+.site__caption {
+  position: absolute;
+  left: calc(404 * var(--u));
+  bottom: calc(96 * var(--u));
+  color: #fff;
+  font-weight: 500;
+  font-size: calc(28 * var(--u));
+  line-height: 1.2;
+}
+.site__caption span { display: block; opacity: 0; will-change: transform, opacity; }
+/* the figure leads; the rest reads as its note */
+.site__caption-value {
+  margin-bottom: calc(18 * var(--u));
   font-family: var(--f-display);
   font-weight: 600;
-  font-size: calc(120 * var(--u));
-  line-height: 1;
+  font-size: calc(140 * var(--u));
+  line-height: .95;
   text-transform: uppercase;
-  white-space: nowrap;
 }
-.site__stat-note { width: calc(340 * var(--u)); margin: calc(22 * var(--u)) auto 0; line-height: 1.2; }
 .site__line {
   position: absolute;
   left: 0; top: 0;
@@ -506,7 +521,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 
 /* About / sustainability */
-.about { height: calc(900 * var(--u) + 130vh); }
+.about { height: calc(900 * var(--u) + 230vh); }
 /* pinned flush with the bottom edge, but never closer than 64u to the top,
    so the title clears the nav on short screens */
 .about__stage { overflow: visible; height: auto; top: max(calc(64 * var(--u)), calc(100vh - 900 * var(--u))); }
@@ -525,28 +540,30 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   text-transform: uppercase;
 }
 .about__source { position: absolute; left: var(--gutter); bottom: calc(29 * var(--u)); }
-.stats { position: absolute; left: calc(756 * var(--u)); width: calc(716 * var(--u)); overflow: hidden; }
+/* Four columns, 376u wide (the 756u → 1132u column), on one track that
+   slides a column at a time; the column on the left is black, the rest grey.
+   The window runs to the page edge so the right-hand column isn't clipped. */
+.stats { position: absolute; left: calc(756 * var(--u)); right: 0; overflow: hidden; }
 .stats--values { bottom: calc(34 * var(--u)); }
 .stats__track { display: flex; will-change: transform; }
-.stat { flex: 0 0 100%; display: grid; grid-template-columns: calc(376 * var(--u)) 1fr; align-items: end; text-align: center; }
-.stat__value, .stat__delta {
+.stats--values .stats__track { align-items: flex-end; }
+.stat { flex: 0 0 calc(376 * var(--u)); text-align: center; color: var(--grey); transition: color .5s linear; }
+.stat.is-active { color: var(--ink); }
+.stat__value {
+  padding: 0 calc(16 * var(--u));
   font-family: var(--f-display);
   font-weight: 600;
   font-size: calc(68 * var(--u));
   line-height: 1.05;
   text-transform: uppercase;
 }
-.stat__value { padding: 0 calc(16 * var(--u)); }
 .stat__unit { display: block; }
-.stat__delta { color: var(--grey); padding-bottom: .02em; }
 .about__rule { width: auto; margin-right: var(--gutter); margin-left: calc(-8 * var(--u)); }
 .about__bottom { position: relative; height: calc(430 * var(--u)); }
 .about__media { position: absolute; left: 0; top: 0; width: calc(756 * var(--u)); height: calc(372 * var(--u)); overflow: hidden; background: #e8e2d8; }
 .about__img { position: absolute; left: 0; top: 0; width: 100%; height: 146%; object-fit: cover; will-change: transform; }
 .stats--captions { top: calc(246 * var(--u)); }
-.stats--captions .stat { align-items: start; }
 .stat__caption { font-weight: 500; font-size: calc(30 * var(--u)); line-height: 1.2; padding: 0 calc(20 * var(--u)); }
-.stat__caption--muted { color: var(--grey); }
 .stats__dots { position: absolute; left: calc(1132 * var(--u) + 24 * var(--u)); top: calc(24 * var(--u)); display: flex; gap: calc(8 * var(--u)); }
 .stats__dots span { width: calc(7 * var(--u)); height: calc(7 * var(--u)); border: 1px solid var(--ink); transition: background-color .4s linear; }
 .stats__dots span.on { background: var(--ink); }
@@ -879,10 +896,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .hero__cue-dot { width: 3px; height: 7px; margin-left: -1.5px; }
   @keyframes cue { 0% { transform: translateY(-100%); } 60%, 100% { transform: translateY(26px); } }
 
-  .intro { padding: 72px 0 96px; }
-  .intro__grid { grid-template-columns: 1fr; gap: 28px; }
-  .intro__title { width: auto; font-size: 30px; }
-  .intro__lede { width: auto; font-size: 18px; }
+  .hero__intro { height: auto; padding: 18px var(--gutter) 36px; }
+  .hero__rule { width: 100%; }
+  .hero__title, .hero__lede { position: static; width: auto; }
+  .hero__title { font-size: 34px; }
+  .hero__lede { font-size: 17px; margin-top: 16px; }
 
   .clock__text { font-size: 26px; right: var(--gutter); width: auto !important; }
   .clock__field { height: 62vh; }
@@ -912,9 +930,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .about__title { position: static; width: auto; padding: 56px var(--gutter) 40px; font-size: 36px; }
   .about__source { position: static; padding: 0 var(--gutter) 16px; }
   .stats { position: relative; left: 0; width: 100%; bottom: auto !important; top: auto !important; }
-  .stats__track { display: grid; transform: none !important; }
-  .stat { grid-template-columns: 1fr 1fr; padding: 24px 0; }
-  .stat__value, .stat__delta { font-size: 30px; }
+  .stats__track { display: grid; grid-template-columns: 1fr 1fr; transform: none !important; }
+  .stat { padding: 24px 0; color: var(--ink); }
+  .stat__value { font-size: 30px; }
   .stat__caption { font-size: 16px; }
   .about__media { position: relative; width: 100%; height: 60vw; }
   .vline--stats, .stats__dots { display: none; }
@@ -981,8 +999,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .jobtab__desc { width: auto; font-size: 17px; margin-top: 24px; }
   .jobtab__apply { font-size: 11px; margin-top: 28px; }
 
-  .site__stat-value { font-size: 56px; }
-  .site__stat-note { width: 70vw; margin-top: 14px; }
+  .site__caption { left: var(--gutter); bottom: 56px; font-size: 17px; }
+  .site__caption-value { font-size: 64px; margin-bottom: 10px; }
 
   .foot__title { left: 20px; font-size: min(38px, 9.5vw); }
   .foot__link { font-size: 11px; }

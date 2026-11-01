@@ -42,7 +42,8 @@
 
   <main>
 
-    <!-- HERO — pinned; the video frame opens to full screen and pushes into the plant -->
+    <!-- HERO — pinned; the video frame opens to full screen and pushes into the plant, and the
+         intro (rule, title, lede) comes in over the bottom of the footage, as in Figma -->
     <section class="hero scene" id="top" data-scene="hero">
       <div class="scene__stage hero__stage">
         <div class="hero__row">
@@ -55,20 +56,16 @@
         </div>
         <div class="hero__media">
           <div class="hero__media-inner">
-            <video class="hero__video" muted playsinline loop autoplay preload="metadata" poster="assets/img/aerial-plant.jpg">
+            <video class="hero__video" muted playsinline preload="auto" poster="assets/img/hero-poster.jpg">
               <source src="assets/video/thalcon-hero.mp4" type="video/mp4">
             </video>
           </div>
+          <div class="hero__intro">
+            <span class="hero__rule" aria-hidden="true"></span>
+            <h1 class="hero__title" data-split>Let’s Build the Infrastructure Behind the Infrastructure</h1>
+            <p class="hero__lede">A complete ready-mix operation, set up on your site and dedicated to your pours.</p>
+          </div>
         </div>
-      </div>
-    </section>
-
-    <!-- INTRO -->
-    <section class="intro">
-      <span class="rule rule--draw" aria-hidden="true"></span>
-      <div class="intro__grid">
-        <h1 class="intro__title" data-split>Let’s Build the Infrastructure Behind the Infrastructure</h1>
-        <p class="intro__lede" data-reveal>A complete ready-mix operation, set up on your site and dedicated to your pours.</p>
       </div>
     </section>
 
@@ -142,7 +139,7 @@
     </section>
 
     <!-- SITE — pinned; the video card grows to full screen while the video plays with scroll,
-         shrinks back to a card with the "~1 acre" figure under it, then spins 180° into a line -->
+         the "~1 acre" caption rises over the last frame, then it spins 180° into a line -->
     <section class="site scene" data-scene="site">
       <div class="scene__stage site__stage" data-theme="dark">
         <div class="site__frame">
@@ -150,10 +147,8 @@
             <source src="assets/video/site-aerial.mp4" type="video/mp4">
           </video>
         </div>
-        <div class="site__stat">
-          <p class="site__stat-value">~1 acre</p>
-          <p class="label site__stat-note">for the full operation, stockpiles included</p>
-        </div>
+        <div class="site__shade" aria-hidden="true"></div>
+        <p class="site__caption"><span class="site__caption-value">~1 acre</span> <span>for the full operation,</span> <span>stockpiles included</span></p>
         <span class="site__line" aria-hidden="true"></span>
         <p class="label site__label">sustainability</p>
       </div>
@@ -162,7 +157,8 @@
     <div class="light">
       <span class="light__axis" aria-hidden="true"></span>
 
-    <!-- SUSTAINABILITY / ABOUT — stats swipe left as you scroll; the image changes with them -->
+    <!-- SUSTAINABILITY / ABOUT — four stat columns slide left one at a time as you scroll; the
+         one arriving in the left column turns black, the rest stay grey; the image pans with them -->
     <section class="about scene" id="sustainability" data-scene="about">
       <div class="scene__stage about__stage">
         <span class="vline vline--stats" aria-hidden="true"></span>
@@ -171,14 +167,10 @@
           <p class="label about__source">NRMCA concrete carbon calculator</p>
           <div class="stats stats--values">
             <div class="stats__track">
-              <div class="stat">
-                <p class="stat__value">186.9 <span class="stat__unit">kg CO₂e/yd³</span></p>
-                <p class="stat__delta">−31.3%</p>
-              </div>
-              <div class="stat">
-                <p class="stat__value">10,888&nbsp;t <span class="stat__unit">→ 7,476&nbsp;t</span></p>
-                <p class="stat__delta">−3,412&nbsp;t</p>
-              </div>
+              <div class="stat is-active"><p class="stat__value">186.9 <span class="stat__unit">kg CO₂e/yd³</span></p></div>
+              <div class="stat"><p class="stat__value">−31.3%</p></div>
+              <div class="stat"><p class="stat__value">10,888&nbsp;t <span class="stat__unit">→ 7,476&nbsp;t</span></p></div>
+              <div class="stat"><p class="stat__value">−3,412&nbsp;t</p></div>
             </div>
           </div>
         </div>
@@ -189,17 +181,13 @@
           </div>
           <div class="stats stats--captions">
             <div class="stats__track">
-              <div class="stat">
-                <p class="stat__caption">Our 70% slag mix, cradle to gate (A1–A3)</p>
-                <p class="stat__caption stat__caption--muted">vs. the NRMCA South Central baseline of 272.2</p>
-              </div>
-              <div class="stat">
-                <p class="stat__caption">Total GWP on a 40,000 CY slab on grade: baseline vs. our mix</p>
-                <p class="stat__caption stat__caption--muted">less CO₂e on a single placement</p>
-              </div>
+              <div class="stat is-active"><p class="stat__caption">Our 70% slag mix, cradle to gate (A1–A3)</p></div>
+              <div class="stat"><p class="stat__caption">vs. the NRMCA South Central baseline of 272.2</p></div>
+              <div class="stat"><p class="stat__caption">Total GWP on a 40,000 CY slab on grade: baseline vs. our mix</p></div>
+              <div class="stat"><p class="stat__caption">less CO₂e on a single placement</p></div>
             </div>
           </div>
-          <div class="stats__dots" aria-hidden="true"><span></span><span></span></div>
+          <div class="stats__dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
           <p class="label about__next">why us</p>
         </div>
       </div>
