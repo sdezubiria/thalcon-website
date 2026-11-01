@@ -56,7 +56,8 @@ The deploy:
 - generates and type-checks the component, then creates or updates the code file;
 - puts one full-width instance on the Home page;
 - adds Tablet and Phone breakpoints, so phones get device width;
-- fills any empty image or video field on the instance with the site's own file, so the panel shows the real images.
+- fills any empty image or video field on the instance with the site's own file, so the panel shows the real images;
+- if the Thalcon site layer was pasted in from another project, moves it onto this project's own code file, keeping its content (the old field values are saved to `.cache/` first).
 
 It never publishes. Content the client edited on the instance is kept.
 

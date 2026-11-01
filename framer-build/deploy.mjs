@@ -87,6 +87,20 @@ try {
 
     let kids = await framer.getChildren(desktop.id)
     let instance = kids.find((n) => n.name === INSTANCE)
+    // A layer pasted from another project keeps running that project's saved
+    // copy of the code. Swap it for one from this project's file, with the same
+    // content (a backup of the fields goes to .cache/ first).
+    const moduleOf = (url) => url?.match(/modules\/([^/]+)\//)?.[1]
+    if (instance && moduleOf(instance.insertURL) !== moduleOf(component.insertURL)) {
+        const controls = instance.controls ?? {}
+        await mkdir(join(SITE, "framer-build/.cache"), { recursive: true })
+        await writeFile(join(SITE, "framer-build/.cache", `controls-backup-${Date.now()}.json`), JSON.stringify(controls, null, 2))
+        const fresh = await framer.addComponentInstance({ url: component.insertURL, parentId: desktop.id })
+        await framer.setAttributes(fresh.id, { controls })
+        await framer.removeNodes([instance.id])
+        instance = fresh
+        console.log("Page: moved Thalcon site onto this project's code file, content kept")
+    }
     if (!instance) {
         instance = await framer.addComponentInstance({ url: component.insertURL, parentId: desktop.id })
         console.log("Page: added ThalconSite")
