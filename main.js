@@ -144,7 +144,7 @@
   const themeZones = $$('main [data-theme]');
   const navLinks = $$('.hdr__nav a');
   const navTargets = navLinks.map(a => document.getElementById(a.getAttribute('href').slice(1)));
-  const state = { heroClipTop: Infinity, logoDock: 0, logoHidden: false, intro: 0 };
+  const state = { heroClipTop: Infinity, logoDock: 0, intro: 0 };
 
   function updateHeader() {
     hdr.classList.toggle('is-scrolled', window.scrollY > 8);
@@ -167,8 +167,7 @@
     const s1 = mobile ? 0.5 : 0.6;
     const introY = (1 - state.intro) * 24 * U;
     hdrLogo.style.transform = `translate3d(0, ${f2(lerp(top0, top1, d) + introY)}px, 0) scale(${f2(lerp(1, s1, d) * 1000) / 1000})`;
-    hdrLogo.style.opacity = state.logoHidden ? 0 : state.intro;
-    hdrLogo.style.pointerEvents = state.logoHidden ? 'none' : '';
+    hdrLogo.style.opacity = state.intro;
 
     // active link
     let active = -1;
@@ -189,14 +188,30 @@
   });
 
   /* ---------------------------------------------------------------------- */
+  /* Cursor — square follows the pointer with a little lag                   */
+  /* ---------------------------------------------------------------------- */
+  const cursor = $('.cursor');
+  if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    root.classList.add('has-cursor');
+    const c = { x: -50, y: -50, tx: -50, ty: -50 };
+    window.addEventListener('pointermove', e => {
+      c.tx = e.clientX; c.ty = e.clientY;
+      if (!cursor.classList.contains('is-on')) { c.x = c.tx; c.y = c.ty; cursor.classList.add('is-on'); }
+    }, { passive: true });
+    document.addEventListener('pointerleave', () => cursor.classList.remove('is-on'));
+    tickers.push((now, dt) => {
+      const k = reduceMotion ? 1 : 1 - Math.pow(1 - 0.35, dt);
+      c.x += (c.tx - c.x) * k; c.y += (c.ty - c.y) * k;
+      cursor.style.transform = `translate3d(${f2(c.x)}px, ${f2(c.y)}px, 0)`;
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
   /* Scroll-drawn rules                                                      */
   /* ---------------------------------------------------------------------- */
   const drawers = [];
   $$('.rule--draw').forEach(el => drawers.push({ el, axis: 'x', v: 0, from: 0.95, span: 0.5 }));
-  $$('.vline--stats').forEach(el => drawers.push({ el, axis: 'y', v: 0, from: 0.9, span: 0.9 }));
   $$('.job__meta').forEach(el => drawers.push({ el, axis: 'var', v: 0, from: 0.98, span: 0.35 }));
-  const lightEl = $('.light'), axisEl = $('.light__axis');
-  let axisV = 0;
 
   tickers.push((now, dt) => {
     const k = reduceMotion ? 1 : 1 - Math.pow(1 - 0.12, dt);
@@ -209,12 +224,6 @@
       if (d.axis === 'x') d.el.style.transform = `scaleX(${d.v.toFixed(4)})`;
       else if (d.axis === 'y') d.el.style.transform = `scaleY(${d.v.toFixed(4)})`;
       else d.el.style.setProperty('--draw', d.v.toFixed(4));
-    }
-    if (lightEl) {
-      const r = lightEl.getBoundingClientRect();
-      const t = clamp((H * 0.8 - r.top) / r.height);
-      axisV += (t - axisV) * k;
-      axisEl.style.transform = `scaleY(${axisV.toFixed(4)})`;
     }
   });
 
@@ -269,6 +278,8 @@
   const field = $('.clock__field');
   const textA = $('.clock__text--a');
   const textB = $('.clock__text--b');
+  const clockStage = $('.clock__stage');
+  const clockLabel = $('.clock__label');
   const wordsA = $$('.wd', textA);
   let litCount = -1;
 
@@ -283,31 +294,59 @@
   };
 
   addScene(clock, p => {
-    const lit = Math.round(ease.out(range(p, 0.02, 0.32)) * wordsA.length);
+    const lit = Math.round(ease.out(range(p, 0.02, 0.24)) * wordsA.length);
     if (lit !== litCount) {
       wordsA.forEach((w, i) => w.classList.toggle('on', i < lit));
       litCount = lit;
     }
 
-    const phi = 180 * ease.io(range(p, 0.4, 0.86));
-    // the hand: a 1px line through the pivot, redrawn whole every frame
+    const phi = 180 * ease.io(range(p, 0.28, 0.54));
+    // at 180° the page inverts, ready for the black section that follows
+    const inv = ease.io(range(p, 0.46, 0.56));
+    const bg = Math.round(255 * (1 - inv)), fg = Math.round(245 * inv);
+    clockStage.style.backgroundColor = inv >= 1 ? 'transparent' : `rgb(${bg},${bg},${bg})`;
+    clockStage.style.color = `rgb(${fg},${fg},${fg})`;
+    clockStage.style.pointerEvents = inv >= 1 ? 'none' : '';
+    clockStage.dataset.theme = inv > 0.5 ? 'dark' : 'light';
+    textB.style.opacity = f2(1 - range(p, 0.6, 0.66));
+    clockLabel.style.opacity = f2(1 - range(p, 0.5, 0.6));
+
+    // the hand: a hairline through the pivot, redrawn whole every frame
     const handLen = mobile ? W : 1472 * U;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const lw = dpr >= 2 ? 0.5 : 1;
     const dw = dial.clientWidth, dh = dial.clientHeight;
     if (dial.width !== Math.round(dw * dpr) || dial.height !== Math.round(dh * dpr)) {
       dial.width = Math.round(dw * dpr);
       dial.height = Math.round(dh * dpr);
     }
-    const cx = handLen / 2, cy = field.offsetTop - dial.offsetTop + 0.5;
+    const cx = handLen / 2, cy = field.offsetTop - dial.offsetTop;
     const rad = phi * Math.PI / 180, hx = Math.cos(rad) * handLen / 2, hy = -Math.sin(rad) * handLen / 2;
+    // after the turn the line slides up and shortens into the offer rule
+    // (desktop: x -2u → 744u, 163u from the top); on mobile it just fades
+    const m = mobile ? 0 : ease.io(range(p, 0.6, 0.7));
+    const x0 = lerp(cx - hx, -2 * U, m), x1 = lerp(cx + hx, 744 * U, m);
+    const yEnd = 163 * U - dial.offsetTop;
+    const snap = y => Math.round(y * dpr) / dpr + lw / 2;
+    const y0 = snap(lerp(cy - hy, yEnd, m)), y1 = snap(lerp(cy + hy, yEnd, m));
+    const lc = Math.round(lerp(207, 245, inv));
     dctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     dctx.clearRect(0, 0, dw, dh);
+    dctx.globalAlpha = mobile ? 1 - range(p, 0.6, 0.7) : 1;
+    dctx.lineWidth = lw;
+    dctx.strokeStyle = `rgba(${lc},${lc},${lc},${f2(lerp(1, lerp(0.6, 0.24, m), inv))})`;
     dctx.beginPath();
-    dctx.moveTo(cx - hx, cy - hy);
-    dctx.lineTo(cx + hx, cy + hy);
-    dctx.lineWidth = 1;
-    dctx.strokeStyle = '#000';
+    dctx.moveTo(x0, y0);
+    dctx.lineTo(x1, y1);
     dctx.stroke();
+    if (m > 0) {
+      // the offer rule's progress fill (first third) brightens as it lands
+      dctx.strokeStyle = `rgba(245,245,245,${f2(0.6 * m)})`;
+      dctx.beginPath();
+      dctx.moveTo(x0, y0);
+      dctx.lineTo(x0 + (x1 - x0) / 3, lerp(y0, y1, 1 / 3));
+      dctx.stroke();
+    }
 
     // pivot = centre of the hand, expressed in each text's own box
     const px = handLen / 2 - textA.offsetLeft;
@@ -329,6 +368,16 @@
     }
   }, 0.1);
 
+  // Hand-over: once the offer has slid into place under the clock's last
+  // screen, its own rule takes over from the drawn line
+  const offerSec = $('.offer');
+  tickers.push(() => {
+    const arrived = mobile || offerSec.getBoundingClientRect().top <= 19 * U + 1;
+    if (arrived === offerSec.classList.contains('is-arrived')) return;
+    offerSec.classList.toggle('is-arrived', arrived);
+    dial.style.opacity = arrived && !mobile ? 0 : '';
+  });
+
   /* ---------------------------------------------------------------------- */
   /* OFFER — morphing illustration (see illo.js)                          */
   /* ---------------------------------------------------------------------- */
@@ -337,7 +386,6 @@
   let illoT = 0;          // smoothed morph position 0..2
   let illoIntroStart = 0; // time the drawing started to draw in
   let illoVisible = false;
-  const offerEl = $('.offer');
   const pillars = $$('.pillar');
   const pillarTitles = pillars.map(p => $('.pillar__title', p));
   const countStrip = $('.offer__count-strip');
@@ -350,7 +398,7 @@
   }, { rootMargin: '0px 0px -20% 0px' }).observe($('.illo'));
 
   tickers.push((now, dt) => {
-    const r = offerEl.getBoundingClientRect();
+    const r = offerSec.getBoundingClientRect();
     if (r.bottom < -H || r.top > H * 2) return;
     let target = 0;
     for (let k = 1; k < pillarTitles.length; k++) {
@@ -423,7 +471,7 @@
     siteStage.dataset.media = a > 0.85 && c < 0.7 ? '1' : '0';
 
     // D — the line settles at the bottom edge, where the next section begins
-    const lv = Math.round(lerp(245, 0, range(c, 0.6, 1)));
+    const lv = Math.round(lerp(245, 207, range(c, 0.6, 1)));
     siteLine.style.backgroundColor = `rgb(${lv},${lv},${lv})`;
     siteLine.style.width = f2(lineW) + 'px';
     siteLine.style.opacity = f2(range(c, 0.8, 0.95));
@@ -463,15 +511,94 @@
   /* ---------------------------------------------------------------------- */
   const innovItems = $$('.innov__item');
   const innovLogos = $$('.innov__logo');
+  const innovList = $('.innov__list');
   let innovIdx = -1;
-  tickers.push(() => {
-    let idx = 0;
-    innovItems.forEach((it, i) => { if (it.getBoundingClientRect().top < H * 0.52) idx = i; });
+  const setInnov = idx => {
     if (idx === innovIdx) return;
     innovIdx = idx;
     innovItems.forEach((it, i) => it.classList.toggle('is-active', i === idx));
     innovLogos.forEach((l, i) => l.classList.toggle('is-active', i === idx));
+  };
+  // Desktop: the list scrolls up through the pinned right half; the item
+  // nearest the middle is the active one
+  addScene($('.innov'), p => {
+    if (mobile) return;
+    const lh = innovList.offsetHeight;
+    const y = lerp(H * 0.5 - innovItems[0].offsetHeight / 2, H * 0.5 - lh + innovItems[innovItems.length - 1].offsetHeight / 2, ease.io2(range(p, 0.08, 0.92)));
+    innovList.style.transform = `translate3d(0, ${f2(y)}px, 0)`;
+    let idx = 0, best = Infinity;
+    innovItems.forEach((it, i) => {
+      const d = Math.abs(y + it.offsetTop + it.offsetHeight / 2 - H * 0.5);
+      if (d < best) { best = d; idx = i; }
+    });
+    setInnov(idx);
+  }, 0.1);
+  tickers.push(() => {
+    if (!mobile) return;
+    let idx = 0;
+    innovItems.forEach((it, i) => { if (it.getBoundingClientRect().top < H * 0.52) idx = i; });
+    setInnov(idx);
   });
+
+  /* ---------------------------------------------------------------------- */
+  /* PARTNERS — head holds, the four logos rise into place                   */
+  /* ---------------------------------------------------------------------- */
+  const partnerEls = $$('.partner');
+  addScene($('.partners'), p => {
+    if (mobile) { partnerEls.forEach(el => { el.style.opacity = el.style.transform = ''; }); return; }
+    partnerEls.forEach((el, i) => {
+      const k = ease.out(range(p, 0.12 + i * 0.07, 0.5 + i * 0.07));
+      el.style.opacity = f2(range(k, 0, 0.6));
+      el.style.transform = `translate3d(0, ${f2((1 - k) * H * 0.7)}px, 0)`;
+    });
+  }, 0.1);
+
+  /* ---------------------------------------------------------------------- */
+  /* SCALE OUTPUT — axis opens into a grid, numbers count, grid folds back   */
+  /* ---------------------------------------------------------------------- */
+  const scaleGrid = $('.scale__grid');
+  const scaleFrame = $('.scale__frame');
+  const scaleTable = $('.scale__table');
+  const scaleRows = $$('.scale__row');
+  const scaleTitle = $('.scale__title');
+  const scaleNotes = $('.scale__notes');
+  const scaleNums = $$('.scale__row [data-n]');
+  const fmt = n => String(n); // Figma shows plain digits (1200, not 1,200)
+
+  addScene($('.scale'), p => {
+    if (mobile) {
+      scaleNums.forEach(el => { el.textContent = fmt(+el.dataset.n); });
+      return;
+    }
+    const open = ease.io(range(p, 0.02, 0.22));
+    const close = ease.io(range(p, 0.7, 0.94));
+    // grid: opens sideways out of the centre axis, then shrinks back into it
+    const g = open * (1 - close);
+    scaleGrid.style.clipPath = `inset(0 ${f2((1 - g) * 50)}% 0 ${f2((1 - g) * 50)}%)`;
+    scaleGrid.style.setProperty('--cell', f2(1512 / 80 * U * lerp(1, 0.4, close)) + 'px');
+    scaleGrid.style.opacity = f2(1 - range(close, 0.7, 1));
+
+    // table rules draw in once the grid is open, row by row
+    scaleTable.style.setProperty('--k', ease.io(range(p, 0.14, 0.3)).toFixed(4));
+    scaleRows.forEach((r, i) => r.style.setProperty('--k', ease.io(range(p, 0.16 + i * 0.022, 0.3 + i * 0.022)).toFixed(4)));
+    const t = ease.out(range(p, 0.16, 0.3));
+    scaleTable.style.setProperty('--t', f2(range(p, 0.2, 0.32)));
+    scaleTitle.style.opacity = f2(t);
+    scaleTitle.style.transform = `translate3d(0, ${f2((1 - t) * 30 * U)}px, 0)`;
+    const nt = ease.out(range(p, 0.26, 0.38));
+    scaleNotes.style.opacity = f2(nt);
+    scaleNotes.style.transform = `translate3d(0, ${f2((1 - nt) * 16 * U)}px, 0)`;
+
+    // numbers count up from 0
+    const c = ease.out(range(p, 0.3, 0.5));
+    scaleNums.forEach(el => { el.textContent = fmt(Math.round(+el.dataset.n * c)); });
+
+    // everything folds toward the axis as the grid closes
+    const fo = range(close, 0, 0.6);
+    scaleFrame.style.opacity = f2(1 - fo);
+    scaleFrame.style.transform = `scale(${(1 - 0.06 * fo).toFixed(4)})`;
+    scaleFrame.style.transformOrigin = `${f2(756 * U)}px 50%`;
+  }, 0.1);
 
   /* ---------------------------------------------------------------------- */
   /* NATION WIDE — words part, hub-and-spoke map opens                       */
@@ -486,10 +613,16 @@
     [-243.97, 80.99], [-138.85, 110.43], [-179.76, -107.24], [-56.77, -159.87],
     [99.76, -80.15], [271.04, -80.34], [200.63, 10.6], [138.85, 154.76],
   ];
-  const RINGS = [109.375, 268.337, 376];
+  // Wire globe (Figma: 752 × 379): silhouette, meridians that turn about the
+  // vertical axis so it reads as a sphere, and two parallels
+  const GR = [376, 189.5];
+  const MERIDIANS = 6;
+  const PARALLELS = [-0.62, 0.62];
   const gN = svgEl('g', {}, nmap);
   const eq = svgEl('line', { class: 'eq' }, gN);
-  const rings = RINGS.map(() => svgEl('ellipse', { class: 'ring' }, gN));
+  const silhouette = svgEl('ellipse', { class: 'ring' }, gN);
+  const meridians = Array.from({ length: MERIDIANS }, () => svgEl('ellipse', { class: 'ring ring--m' }, gN));
+  const parallels = PARALLELS.map(() => svgEl('line', { class: 'eq' }, gN));
   const spokes = NODES.map(() => svgEl('line', { class: 'spoke' }, gN));
   const pulses = NODES.map(() => svgEl('rect', { class: 'pulse' }, gN));
   const nodes = NODES.map(() => svgEl('rect', { class: 'node' }, gN));
@@ -517,12 +650,26 @@
     eq.setAttribute('x1', f2(cx - (W / 2) * ek)); eq.setAttribute('x2', f2(cx + (W / 2) * ek));
     eq.setAttribute('y1', f2(cy)); eq.setAttribute('y2', f2(cy));
 
-    // rings ripple out from the hub
-    rings.forEach((r, i) => {
-      const k = ease.out(range(p, 0.1 + i * 0.08, 0.5 + i * 0.08));
+    // globe ripples out from the hub, then keeps turning (time + scroll)
+    const ks = ease.out(range(p, 0.1, 0.5));
+    silhouette.setAttribute('cx', f2(cx)); silhouette.setAttribute('cy', f2(cy));
+    silhouette.setAttribute('rx', f2(GR[0] * S * ks)); silhouette.setAttribute('ry', f2(GR[1] * S * ks));
+    silhouette.style.opacity = f2(range(ks, 0, 0.25));
+    const km = ease.out(range(p, 0.18, 0.62));
+    const spin = (reduceMotion ? 0 : now / 1000 * (Math.PI * 2 / 48)) + p * Math.PI * 0.75;
+    meridians.forEach((r, i) => {
+      const lon = spin + i * Math.PI / MERIDIANS;
       r.setAttribute('cx', f2(cx)); r.setAttribute('cy', f2(cy));
-      r.setAttribute('rx', f2(RINGS[i] * S * k)); r.setAttribute('ry', f2(189.5 * S * k));
-      r.style.opacity = f2(range(k, 0, 0.25));
+      r.setAttribute('rx', f2(GR[0] * S * ks * Math.abs(Math.sin(lon))));
+      r.setAttribute('ry', f2(GR[1] * S * ks));
+      r.style.opacity = f2(range(km, 0, 0.4) * 0.8);
+    });
+    parallels.forEach((l, i) => {
+      const yk = PARALLELS[i];
+      const hw = GR[0] * S * ks * Math.sqrt(1 - yk * yk) * km;
+      l.setAttribute('x1', f2(cx - hw)); l.setAttribute('x2', f2(cx + hw));
+      l.setAttribute('y1', f2(cy + yk * GR[1] * S * ks)); l.setAttribute('y2', f2(cy + yk * GR[1] * S * ks));
+      l.style.opacity = f2(range(km, 0, 0.4));
     });
 
     const hs = 9 * S * ease.out(range(p, 0.08, 0.2));
@@ -586,8 +733,8 @@
     guideL.style.transform = `translate3d(${f2(gl - cxu)}px, 0, 0)`;
     guideR.style.transform = `translate3d(${f2(gr - cxu)}px, 0, 0)`;
     const kc = range(p, 0.12, 0.42);
-    const gc = Math.round(lerp(0, 245, kc));
-    const ga = lerp(1, mobile ? 0 : 0.22, kc);
+    const gc = Math.round(lerp(207, 245, kc));
+    const ga = lerp(1, mobile ? 0 : 0.24, kc);
     guideL.style.background = guideR.style.background = `rgba(${gc},${gc},${gc},${ga.toFixed(3)})`;
 
     splitStage.dataset.theme = k > 0.45 ? 'dark' : 'light';
@@ -596,16 +743,38 @@
     splitTitle.style.transform = `translate3d(0, ${f2((1 - ease.out(range(p, 0.46, 0.84))) * 110)}%, 0)`;
   }, 0.1);
 
-  // Job rows open to show the description and the CV link
-  $$('.job').forEach(job => {
+  // Job rows open the description tab from the right
+  const jobtab = $('.jobtab');
+  const jobtabClose = $('.jobtab__close');
+  let jobOpener = null;
+  function openJob(job) {
     const btn = $('.job__row', job);
-    btn.addEventListener('click', () => {
-      const open = !job.classList.contains('is-open');
-      $$('.job.is-open').forEach(j => { if (j !== job) { j.classList.remove('is-open'); $('.job__row', j).setAttribute('aria-expanded', 'false'); } });
-      job.classList.toggle('is-open', open);
-      btn.setAttribute('aria-expanded', String(open));
-    });
-  });
+    $('.jobtab__title').textContent = $('.job__title', job).textContent;
+    $('.jobtab__sub').textContent = $('.job__sub', job).textContent;
+    $('.jobtab__loc').textContent = $('.job__loc', job).textContent;
+    $('.jobtab__desc').textContent = $('.job__desc', job).textContent;
+    $('.jobtab__apply').href = $('.job__apply', job).href;
+    $$('.job__row[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    btn.setAttribute('aria-expanded', 'true');
+    jobOpener = btn;
+    jobtab.classList.add('is-open');
+    jobtab.removeAttribute('inert');
+    jobtab.setAttribute('aria-hidden', 'false');
+    root.style.overflow = 'hidden';
+    jobtabClose.focus({ preventScroll: true });
+  }
+  function closeJob() {
+    if (!jobtab.classList.contains('is-open')) return;
+    jobtab.classList.remove('is-open');
+    jobtab.setAttribute('inert', '');
+    jobtab.setAttribute('aria-hidden', 'true');
+    root.style.overflow = '';
+    if (jobOpener) { jobOpener.setAttribute('aria-expanded', 'false'); jobOpener.focus({ preventScroll: true }); }
+  }
+  $$('.job').forEach(job => $('.job__row', job).addEventListener('click', () => openJob(job)));
+  jobtabClose.addEventListener('click', closeJob);
+  $('.jobtab__scrim').addEventListener('click', closeJob);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJob(); });
 
   /* ---------------------------------------------------------------------- */
   /* FOOTER — the mark grows to full width and becomes the footer            */
@@ -659,7 +828,8 @@
 
     const lo = ease.out(range(p, 0.7, 0.86));
     footLogo.style.top = f2(logoTop) + 'px';
-    footLogo.style.opacity = f2(lo);
+    // the header stays visible here, so skip the footer logo when it would sit under it
+    footLogo.style.opacity = f2(!mobile && logoTop < 110 * U ? 0 : lo);
     footLogo.style.transform = `translate3d(0, ${f2((1 - lo) * 12 * U)}px, 0)`;
     if (mobile) {
       // title inside the large shape, links in a row under the mark
@@ -683,7 +853,6 @@
       l.style.opacity = f2(o);
       l.style.transform = `translate3d(0, ${f2((1 - o) * 12 * U)}px, 0)`;
     });
-    state.logoHidden = foot.getBoundingClientRect().top < H * 0.5;
   }, 0.1);
 
   /* ---------------------------------------------------------------------- */

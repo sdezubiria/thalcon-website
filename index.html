@@ -18,6 +18,9 @@
     <div class="loader__pct"><span class="loader__num">0</span>&thinsp;%</div>
   </div>
 
+  <!-- Cursor: a small square that inverts whatever it sits on -->
+  <div class="cursor" aria-hidden="true"></div>
+
   <header class="hdr" data-theme="light">
     <div class="hdr__stripes" aria-hidden="true">
       <span class="stripe stripe--1"></span>
@@ -68,9 +71,10 @@
       </div>
     </section>
 
-    <!-- CLOCK — pinned; the rule turns counter-clockwise like a clock hand and wipes in the next statement -->
+    <!-- CLOCK — pinned; the rule turns counter-clockwise like a clock hand and wipes in the next statement,
+         then the page inverts to black and the rule slides into place as the "our offer" line -->
     <section class="clock scene" data-scene="clock">
-      <div class="scene__stage clock__stage">
+      <div class="scene__stage clock__stage" data-theme="light">
         <canvas class="clock__dial" aria-hidden="true"></canvas>
         <p class="label clock__label">about</p>
         <div class="clock__field">
@@ -144,7 +148,7 @@
           <div class="site__inner"><img src="assets/img/aerial-plant.jpg" alt="Aerial view of a mobile aggregate and batch plant layout" loading="lazy" decoding="async"></div>
         </div>
         <span class="site__line" aria-hidden="true"></span>
-        <p class="label site__label">about</p>
+        <p class="label site__label">sustainability</p>
       </div>
     </section>
 
@@ -171,7 +175,7 @@
             </div>
           </div>
         </div>
-        <span class="rule rule--draw about__rule" aria-hidden="true"></span>
+        <span class="rule about__rule" aria-hidden="true"></span>
         <div class="about__bottom">
           <div class="about__media">
             <img class="about__img" src="assets/img/aerial-tracks.jpg" alt="Aerial view of tire tracks across a graded site" loading="lazy" decoding="async">
@@ -194,30 +198,34 @@
       </div>
     </section>
 
-    <!-- INNOVATION -->
-    <section class="innov" id="innovation">
-      <span class="rule rule--draw" aria-hidden="true"></span>
-      <div class="innov__head">
-        <h2 class="innov__title" data-split>Innovation</h2>
-        <p class="innov__lede" data-reveal>Constantly engaged in industry development, with a forward push for lower-carbon concrete.</p>
-      </div>
-      <span class="rule rule--draw" aria-hidden="true"></span>
-      <div class="innov__body">
-        <div class="innov__logos" aria-hidden="true">
-          <div class="innov__logo is-active"><img src="assets/img/nrmca-logo.png" alt=""></div>
-          <div class="innov__logo"><span class="innov__wordmark">ACI</span></div>
-          <div class="innov__logo"><span class="innov__wordmark">ACI<small>South Florida</small></span></div>
+    <!-- INNOVATION — pinned for one screen; the left side holds while the
+         names scroll up the right side, fading in and out at the edges -->
+    <section class="innov scene" id="innovation" data-scene="innov">
+      <div class="scene__stage innov__stage">
+        <span class="rule innov__rule" aria-hidden="true"></span>
+        <div class="innov__side">
+          <h2 class="innov__title" data-split>Innovation</h2>
+          <p class="innov__lede" data-reveal>Constantly engaged in industry development, with a forward push for lower-carbon concrete.</p>
+          <div class="innov__logos" aria-hidden="true">
+            <div class="innov__logo is-active"><img src="assets/img/nrmca-logo.png" alt=""></div>
+            <div class="innov__logo"><span class="innov__wordmark">ACI</span></div>
+            <div class="innov__logo"><span class="innov__wordmark">ACI<small>South Florida</small></span></div>
+          </div>
         </div>
-        <ol class="innov__list">
-          <li class="innov__item is-active">National Ready Mixed Concrete Association</li>
-          <li class="innov__item">American <br>Concrete Institute</li>
-          <li class="innov__item">ACI <br>South Florida</li>
-        </ol>
+        <div class="innov__window">
+          <ol class="innov__list">
+            <li class="innov__item is-active">National Ready Mixed Concrete Association</li>
+            <li class="innov__item">American <br>Concrete Institute</li>
+            <li class="innov__item">ACI <br>South Florida</li>
+          </ol>
+        </div>
       </div>
     </section>
 
-    <!-- STRATEGIC RELATIONSHIPS -->
-    <section class="partners">
+    <!-- STRATEGIC RELATIONSHIPS — pinned; the title and text hold while the
+         four logos rise into place, then the section lets go -->
+    <section class="partners scene" data-scene="partners">
+      <div class="scene__stage partners__stage">
       <div class="partners__head">
         <h2 class="partners__title" data-split>Strategic Relationships</h2>
         <p class="partners__lede" data-reveal>Concrete depends on everyone around the pour: suppliers, general contractors and shell crews. Our partnerships across construction and material supply keep every plant stocked and every placement on schedule.</p>
@@ -228,6 +236,31 @@
         <li class="partner"><img src="assets/img/partner-rha.png" alt="RHa" width="286" height="72" style="width:calc(286 * var(--u))"></li>
         <li class="partner"><img src="assets/img/partner-kimera.png" alt="Kimera" width="212" height="209" style="width:calc(212 * var(--u))"></li>
       </ul>
+      </div>
+    </section>
+
+    <!-- SCALE OUTPUT — pinned; the centre axis opens into a grid, the table draws
+         in and its numbers count up, then the grid shrinks back into the axis -->
+    <section class="scale scene" data-scene="scale">
+      <div class="scene__stage scale__stage">
+        <div class="scale__grid" aria-hidden="true"></div>
+        <div class="scale__frame">
+          <h2 class="scale__title">Scale output <br>to the schedule</h2>
+          <ul class="scale__notes">
+            <li>~120 CY/hr sustained, up to 196 CY/hr peak, per plant</li>
+            <li>Built-in redundancy as insurance against equipment servicing and supply disruptions</li>
+          </ul>
+          <div class="scale__table" role="table" aria-label="Base case vs. doubled output">
+            <span class="scale__vline" aria-hidden="true"></span>
+            <div class="scale__row scale__row--head" role="row"><span role="columnheader"></span><span role="columnheader">Base case</span><span role="columnheader">Double</span></div>
+            <div class="scale__row" role="row"><span role="rowheader">CY per pour day</span><span role="cell" data-n="600">600</span><span role="cell" data-n="1200">1200</span></div>
+            <div class="scale__row" role="row"><span role="rowheader">Plants in <br>production</span><span role="cell" data-n="1">1</span><span role="cell" data-n="1">1</span></div>
+            <div class="scale__row" role="row"><span role="rowheader">Mixer trucks</span><span role="cell" data-n="5">5</span><span role="cell" data-n="9">9</span></div>
+            <div class="scale__row" role="row"><span role="rowheader">Crew on shift</span><span role="cell" data-n="15">15</span><span role="cell" data-n="22">22</span></div>
+            <div class="scale__row" role="row"><span role="rowheader">Pour days <br>for 50,000 CY</span><span role="cell" data-n="84">84</span><span role="cell" data-n="42">42</span></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- WORKING NATION WIDE — pinned; the words part and the hub-and-spoke map opens between them -->
@@ -264,7 +297,7 @@
       <span class="jobs__guide jobs__guide--r" aria-hidden="true"></span>
       <ul class="jobs__list">
         <li class="job">
-          <button class="job__row" aria-expanded="false">
+          <button class="job__row" aria-haspopup="dialog" aria-expanded="false">
             <span class="job__title">Mechanic</span>
             <span class="job__meta">
               <span class="job__sub">sub title</span>
@@ -272,13 +305,13 @@
               <svg class="job__arrow" viewBox="0 0 48.3 7.4" aria-hidden="true"><use href="#arrow-path"/></svg>
             </span>
           </button>
-          <div class="job__panel"><div class="job__panel-inner">
+          <div class="job__detail" hidden>
             <p class="job__desc">Full job description coming soon.</p>
             <a class="job__apply" href="mailto:elias@thalconmix.com?subject=Application%20%E2%80%94%20Mechanic">Send your CV</a>
-          </div></div>
+          </div>
         </li>
         <li class="job">
-          <button class="job__row" aria-expanded="false">
+          <button class="job__row" aria-haspopup="dialog" aria-expanded="false">
             <span class="job__title">Sales Marketing</span>
             <span class="job__meta">
               <span class="job__sub">sub title</span>
@@ -286,13 +319,13 @@
               <svg class="job__arrow" viewBox="0 0 48.3 7.4" aria-hidden="true"><use href="#arrow-path"/></svg>
             </span>
           </button>
-          <div class="job__panel"><div class="job__panel-inner">
+          <div class="job__detail" hidden>
             <p class="job__desc">Full job description coming soon.</p>
             <a class="job__apply" href="mailto:elias@thalconmix.com?subject=Application%20%E2%80%94%20Sales%20Marketing">Send your CV</a>
-          </div></div>
+          </div>
         </li>
         <li class="job">
-          <button class="job__row" aria-expanded="false">
+          <button class="job__row" aria-haspopup="dialog" aria-expanded="false">
             <span class="job__title">Procurement</span>
             <span class="job__meta">
               <span class="job__sub">sub title</span>
@@ -300,13 +333,13 @@
               <svg class="job__arrow" viewBox="0 0 48.3 7.4" aria-hidden="true"><use href="#arrow-path"/></svg>
             </span>
           </button>
-          <div class="job__panel"><div class="job__panel-inner">
+          <div class="job__detail" hidden>
             <p class="job__desc">Full job description coming soon.</p>
             <a class="job__apply" href="mailto:elias@thalconmix.com?subject=Application%20%E2%80%94%20Procurement">Send your CV</a>
-          </div></div>
+          </div>
         </li>
         <li class="job">
-          <button class="job__row" aria-expanded="false">
+          <button class="job__row" aria-haspopup="dialog" aria-expanded="false">
             <span class="job__title">Product Development</span>
             <span class="job__meta">
               <span class="job__sub">sub title</span>
@@ -314,10 +347,10 @@
               <svg class="job__arrow" viewBox="0 0 48.3 7.4" aria-hidden="true"><use href="#arrow-path"/></svg>
             </span>
           </button>
-          <div class="job__panel"><div class="job__panel-inner">
+          <div class="job__detail" hidden>
             <p class="job__desc">Full job description coming soon.</p>
             <a class="job__apply" href="mailto:elias@thalconmix.com?subject=Application%20%E2%80%94%20Product%20Development">Send your CV</a>
-          </div></div>
+          </div>
         </li>
       </ul>
     </section>
@@ -337,6 +370,22 @@
       </div>
     </footer>
   </main>
+
+  <!-- Job description tab: slides in from the right over the last four columns -->
+  <div class="jobtab" aria-hidden="true" inert>
+    <div class="jobtab__scrim"></div>
+    <section class="jobtab__panel" role="dialog" aria-modal="true" aria-labelledby="jobtab-title">
+      <div class="jobtab__head">
+        <p class="label">Role</p>
+        <button class="jobtab__close label" type="button">Close</button>
+      </div>
+      <span class="jobtab__rule" aria-hidden="true"></span>
+      <h2 class="jobtab__title" id="jobtab-title"></h2>
+      <p class="jobtab__meta label"><span class="jobtab__sub"></span><span class="jobtab__loc"></span></p>
+      <p class="jobtab__desc"></p>
+      <a class="jobtab__apply" href="#">Send your CV</a>
+    </section>
+  </div>
 
   <!-- Shared symbols -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
