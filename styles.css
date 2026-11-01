@@ -621,7 +621,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   transition: opacity .45s var(--ease-out), transform .6s var(--ease-out);
 }
 .innov__logo.is-active { opacity: 1; transform: none; transition-delay: .06s; }
-.innov__logo img { width: 100%; height: auto; min-height: 0; object-fit: contain; }
+.innov__logo img { width: 100%; height: auto; min-height: 0; object-fit: contain; filter: grayscale(1); }
 .innov__logo-note { font-family: var(--f-mono); font-size: calc(14 * var(--u)); text-transform: uppercase; margin-top: calc(10 * var(--u)); }
 .innov__window {
   position: absolute;
@@ -660,7 +660,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   transition-delay: calc(var(--i, 0) * 110ms);
 }
 .partners__grid.is-in .partner { opacity: 1; transform: none; }
-.partner img { max-width: 100%; height: auto; transition: transform .8s var(--ease-out); }
+/* greyscale whatever logo is uploaded, like the originals */
+.partner img { max-width: 100%; height: auto; filter: grayscale(1); transition: transform .8s var(--ease-out); }
 @media (min-width: 820px) { .partner { transition: none; } } /* driven by scroll */
 .partner:hover img { transform: scale(1.04); }
 

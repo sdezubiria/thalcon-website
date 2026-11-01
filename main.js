@@ -636,11 +636,11 @@
   // Parallax: the two centre logos lead and travel less; the outer two start
   // lower and later. Once landed they keep drifting at different rates.
   const partnerEls = $$('.partner');
-  const PARTNER_DEPTH = [1, 0, 0, 1]; // 0 = centre (near), 1 = outer (far)
+  const PARTNER_DEPTH = [1, 0, 0, 1]; // per column: 0 = centre (near), 1 = outer (far)
   addScene($('.partners'), p => {
     if (mobile) { partnerEls.forEach(el => { el.style.opacity = el.style.transform = ''; }); return; }
     partnerEls.forEach((el, i) => {
-      const d = PARTNER_DEPTH[i];
+      const d = PARTNER_DEPTH[i % PARTNER_DEPTH.length]; // a fifth logo starts a new row
       const k = ease.out(range(p, 0.1 + d * 0.12, 0.46 + d * 0.16));
       const rise = (1 - k) * H * lerp(0.55, 0.95, d);
       const drift = (p - 0.5) * lerp(-40, -90, d) * U;
