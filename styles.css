@@ -774,6 +774,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    -------------------------------------------------------------------------- */
 .split { height: 220vh; background: var(--ink); }
 .split__stage { background: var(--ink); color: var(--bone); }
+/* where "work with us" is fully in (90% of the pinned scroll), for the nav link */
+.split__anchor { position: absolute; left: 0; top: calc(120vh * .9); }
 .split__under { position: absolute; left: 0; right: 0; bottom: calc(140 * var(--u)); }
 .split__head { position: relative; padding-left: var(--gutter); }
 .split__rule { display: block; margin: calc(30 * var(--u)) 0 0 calc(-1 * var(--gutter)); width: calc(744 * var(--u)); height: var(--hair); background: var(--line-dark); transform-origin: left; transform: scaleX(0); }
