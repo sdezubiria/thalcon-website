@@ -61,6 +61,14 @@ The deploy:
 
 It never publishes. Content the client edited on the instance is kept.
 
+4. Set the search result by hand, since Framer's API can't. In **Site Settings → General**:
+
+   - Title: `Thalcon — On-site ready-mix concrete`
+   - Description: `A complete ready-mix operation, set up on your site and dedicated to your pours.`
+   - Favicon: `assets/favicon/favicon-light.png` and `favicon-dark.png`
+
+   Otherwise Google lists the site as "My Framer Site", "Made with Framer".
+
 ## Move to another project, with the client's edits
 
 ```bash
