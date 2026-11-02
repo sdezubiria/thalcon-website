@@ -1003,7 +1003,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .scale__notes { order: 1; }
   .scale__frame { display: flex; flex-direction: column; }
 
-  .nation__word { font-size: 30px; }
+  .nation__word { font-size: min(30px, 7.2vw); }
   .nation__copy { left: var(--gutter); width: auto; right: var(--gutter); font-size: 11px; }
   .nation__map .state { font-size: 9px; }
 

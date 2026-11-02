@@ -20,7 +20,7 @@ The parts the client edits are properties of the component, in Framer's right-ha
 | Certifications | The Innovation names and their logos. Each has a logo and an optional note under it. |
 | Partners | The partner logo grid. The logo width is in design units (1/1512 of the page). |
 | Jobs | The careers accordion. The CV link emails the address given, with the job title in the subject. |
-| Globe states | The labels around the globe in "Working Nation Wide", one node each. Add or remove one and the nodes respace. |
+| Globe states | The labels around the globe in "Nation Wide Capabilities", one node each. Add or remove one and the nodes respace. |
 | Hero video, Hero video poster | The video in the opening frame, and the image shown until it loads. |
 | Site video, Site video poster | The aerial video that plays with the scroll before Sustainability, and its first-frame image. |
 
