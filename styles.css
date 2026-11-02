@@ -604,6 +604,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* the photo fills the bottom-left quadrant, down to the bottom edge */
 .about__media { position: absolute; left: 0; top: 0; bottom: 0; width: calc(756 * var(--u)); overflow: hidden; background: #e8e2d8; }
 .about__img { position: absolute; left: 0; top: 0; width: 100%; height: 146%; object-fit: cover; will-change: transform; }
+/* a stat's own photo fades in over the ones before it */
+.about__photos { position: absolute; inset: 0; }
+.about__photo { opacity: 0; transition: opacity .6s ease; }
+.about__photo.is-shown { opacity: 1; }
 .stats--captions { top: calc(246 * var(--v)); }
 .stat__caption { font-weight: 500; font-size: calc(30 * var(--v)); line-height: 1.2; padding: 0 calc(20 * var(--u)) 0 calc(21 * var(--u)); }
 

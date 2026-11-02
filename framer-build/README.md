@@ -15,8 +15,8 @@ The parts the client edits are properties of the component, in Framer's right-ha
 
 | Property | What it controls |
 |---|---|
-| Stats | The sustainability slider. Add a stat and the scroll length adjusts. |
-| Stats photo | The photo next to the stats. |
+| Stats | The sustainability slider. Add a stat and the scroll length adjusts. Each stat can have its own photo, which fades in when the stat comes up. A stat without one keeps the photo of the stat before it. |
+| Stats photo | The photo next to the stats, until a stat with its own photo comes up. |
 | Certifications | The Innovation names and their logos. Each has a logo and an optional note under it. |
 | Partners | The partner logo grid. The logo width is in design units (1/1512 of the page). |
 | Jobs | The careers accordion. The CV link emails the address given, with the job title in the subject. |

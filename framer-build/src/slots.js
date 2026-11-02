@@ -28,6 +28,16 @@ const SLOTS = {
             )
             .join("") + "\n            ",
     statsImage: (p) => src(p.statsImage, ASSETS["assets/img/aerial-tracks.jpg"]),
+    // only the stats that have a photo; main.js shows the active stat's one
+    statsPhotos: (p) =>
+        p.stats
+            .map((s, i) =>
+                s.photo?.src
+                    ? `
+              <img class="about__img about__photo" data-stat="${i}" src="${src(s.photo)}" alt="" loading="lazy" decoding="async">`
+                    : ""
+            )
+            .join("") + "\n            ",
     heroVideo: (p) => esc(p.heroVideo || ASSETS["assets/video/thalcon-hero.mp4"] || "assets/video/thalcon-hero.mp4"),
     heroPoster: (p) => src(p.heroPoster, ASSETS["assets/img/hero-poster.jpg"]),
     siteVideo: (p) => esc(p.siteVideo || ASSETS["assets/video/site-aerial.mp4"] || "assets/video/site-aerial.mp4"),

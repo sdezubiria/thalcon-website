@@ -53,6 +53,7 @@ export async function segments() {
         ["statsValues", tracks],
         ["statsCaptions", inner(body, '<div class="stats__track">', tracks[1])],
         ["statsImage", attr(body, '<img class="about__img" src="', "assets/img/aerial-tracks.jpg")],
+        ["statsPhotos", inner(body, '<div class="about__photos" aria-hidden="true">')],
         ["heroVideo", attr(body, '<source src="', "assets/video/thalcon-hero.mp4")],
         ["heroPoster", attr(body, 'poster="', "assets/img/hero-poster.jpg")],
         ["siteVideo", attr(body, '<source src="', "assets/video/site-aerial.mp4")],

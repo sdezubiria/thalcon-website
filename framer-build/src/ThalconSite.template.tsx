@@ -132,6 +132,7 @@ const CANVAS_CSS = `
 .tc-site .foot__logo, .tc-site .foot__title, .tc-site .foot__link { opacity: 1; transform: none; }
 .tc-site .rule--draw, .tc-site .vline, .tc-site .light__axis, .tc-site .split__rule { transform: none; }
 .tc-site .clock__text--a .wd { opacity: 1; }
+.tc-site .about__photo[data-stat="0"] { opacity: 1; }
 `
 
 ThalconSite.defaultProps = __DEFAULTS__
@@ -147,6 +148,7 @@ addPropertyControls(ThalconSite, {
                 value: { type: ControlType.String, title: "Value" },
                 unit: { type: ControlType.String, title: "Second line" },
                 caption: { type: ControlType.String, title: "Caption", displayTextArea: true },
+                photo: { type: ControlType.ResponsiveImage, title: "Photo" },
             },
         },
     },

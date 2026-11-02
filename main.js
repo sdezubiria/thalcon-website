@@ -548,7 +548,12 @@
   const STATS_END = 0.52, INNOV_IN = 0.62; // scroll split; .about__anchor sits at INNOV_IN
   const tracks = $$('.about .stats__track');
   const statCols = tracks.map(t => [...t.children]);
-  const aboutImg = $('.about__img');
+  const aboutImgs = $$('.about__img');
+  // A stat's own photo shows from that stat on, so one without a photo keeps
+  // the last one before it (the first falls back to the section photo).
+  // Later photos sit on top, so stepping either way is a single fade.
+  const statPhotos = $$('.about__photo');
+  const showStatPhoto = idx => statPhotos.forEach(ph => ph.classList.toggle('is-shown', +ph.dataset.stat <= idx));
   const aboutMedia = $('.about__media');
   const aboutOut = $$('.about__title, .about__source, .stats');
   const statsLine = $('.vline--stats');
@@ -583,6 +588,7 @@
       [...aboutOut, statsLine, aboutMedia, innovLogosBox, innovWindow, innovList].forEach(el => { el.style.opacity = el.style.transform = el.style.clipPath = ''; });
       innovTitle.classList.add('is-in');
       innovLede.classList.add('is-in');
+      showStatPhoto(0);
       return;
     }
     // stats: one column (376u) per step; the column arriving on the left turns black
@@ -590,11 +596,12 @@
     const pos = steps(ps, nSlides);
     tracks.forEach(t => { t.style.transform = `translate3d(${f2(-pos * 376 * U)}px, 0, 0)`; });
     // the photo pans steadily with the scroll (no zoom pulse between steps)
-    aboutImg.style.transform = `translate3d(0, ${f2(-ps * 30.4)}%, 0)`;
+    aboutImgs.forEach(img => { img.style.transform = `translate3d(0, ${f2(-ps * 30.4)}%, 0)`; });
     const idx = Math.round(pos);
     if (idx !== statIdx) {
       statIdx = idx;
       statCols.forEach(cols => cols.forEach((c, i) => c.classList.toggle('is-active', i === idx)));
+      showStatPhoto(idx);
     }
 
     // hand-over: the lines hold; the stats lift away, the photo rolls up
