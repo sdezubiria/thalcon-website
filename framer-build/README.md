@@ -21,8 +21,10 @@ The parts the client edits are properties of the component, in Framer's right-ha
 | Partners | The partner logo grid. The logo width is in design units (1/1512 of the page). |
 | Jobs | The careers accordion. The CV link emails the address given, with the job title in the subject. |
 | Globe states | The labels around the globe in "Nation Wide Capabilities", one node each. Add or remove one and the nodes respace. |
-| Hero video, Hero video poster | The video in the opening frame, and the image shown until it loads. |
+| Hero video, Hero video poster | The video in the opening frame, which follows the scroll, and the image shown until it loads. |
 | Site video, Site video poster | The aerial video that plays with the scroll before Sustainability, and its first-frame image. |
+
+Both videos follow the scroll by seeking, so they need frequent keyframes. Any upload works: `main.js` reads the file's keyframe table, and if there's more than half a second between keyframes, the visitor's browser re-encodes it (WebCodecs, through [Mediabunny](https://mediabunny.dev) loaded from jsDelivr) with one every quarter second, then keeps it in Cache Storage. Where the browser can't encode video (the iOS Simulator's encoder never returns frames), it decodes the frames to JPEG stills and draws them on a canvas instead. A file exported with short keyframe intervals, like the originals (`ffmpeg -g 8`), skips all that and starts sooner.
 
 Everything else (headings, body copy, the animated scenes) comes from `index.html`. To change it, edit the site files and deploy again.
 

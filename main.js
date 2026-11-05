@@ -256,6 +256,293 @@
   });
 
   /* ---------------------------------------------------------------------- */
+  /* Scroll videos — any upload made quick to seek                           */
+  /* ---------------------------------------------------------------------- */
+  // The hero and site videos follow the scroll by seeking, and a seek decodes
+  // from the keyframe before it. Footage straight out of an editor can have
+  // one keyframe in the whole file, so every seek decodes from the start and
+  // the video looks frozen. Each file's keyframe table is read first (a few
+  // KB): one with a keyframe at least every half second plays as uploaded.
+  // Any other is prepared in a worker: re-encoded with a keyframe every
+  // quarter second and kept in Cache Storage, so a visitor converts it once;
+  // where the browser can't encode video (the iOS Simulator), its frames are
+  // decoded to stills and drawn on a canvas instead. The videos start with
+  // preload="none", so a raw file isn't downloaded twice; the poster shows
+  // until the video is ready.
+  const SCRUB_MAX_GAP = 0.5; // seconds between keyframes that still seek quickly
+  const MEDIABUNNY = 'https://cdn.jsdelivr.net/npm/mediabunny@1.62.0/dist/bundles/mediabunny.min.mjs';
+  const SCRUB_WORKER = `
+    const CACHE = 'thalcon-scroll-video-v1';
+    const keyOf = url => 'https://scroll-video.invalid/?src=' + encodeURIComponent(url);
+    const lib = () => import('${MEDIABUNNY}');
+    let queue = Promise.resolve(); // one at a time, hero first
+    onmessage = ({ data: { url, keep } }) => {
+      queue = queue.then(() => prepare(url, keep)).then(
+        file => postMessage({ url, ...file }),
+        err => postMessage({ url, error: String(err) }));
+    };
+
+    async function prepare(url, keep) {
+      const cache = await caches.open(CACHE).catch(() => null);
+      if (cache) {
+        // drop files the page no longer uses
+        const used = keep.map(keyOf);
+        for (const req of await cache.keys()) if (!used.includes(req.url)) await cache.delete(req);
+        const hit = await cache.match(keyOf(url));
+        if (hit) return { blob: await hit.blob() };
+      }
+      if (await canEncode()) {
+        try {
+          const blob = await reencode(url);
+          if (cache) await cache.put(keyOf(url), new Response(blob)).catch(() => {});
+          return { blob };
+        } catch (err) {} // stalled or failed: stills instead
+      }
+      return { frames: await stills(url) };
+    }
+
+    // Some encoders take frames and never give any back (the iOS Simulator's
+    // H.264), so try three small ones first
+    let encodes;
+    function canEncode() {
+      return encodes || (encodes = (async () => {
+        if (typeof VideoEncoder === 'undefined' || typeof OffscreenCanvas === 'undefined') return false;
+        let out = 0;
+        const enc = new VideoEncoder({ output: () => out++, error: () => {} });
+        try {
+          enc.configure({ codec: 'avc1.640028', width: 640, height: 360, bitrate: 1e6 });
+          const c = new OffscreenCanvas(640, 360);
+          c.getContext('2d').fillRect(0, 0, 640, 360);
+          for (let i = 0; i < 3; i++) {
+            const f = new VideoFrame(c, { timestamp: i * 40000 });
+            enc.encode(f, { keyFrame: i === 0 });
+            f.close();
+          }
+          await Promise.race([enc.flush(), new Promise(r => setTimeout(r, 2000))]);
+        } catch (err) {}
+        try { enc.close(); } catch (err) {}
+        return out > 0;
+      })());
+    }
+
+    const fitWidth = (track, max) => {
+      const width = 2 * Math.round(Math.min(track.displayWidth, max) / 2);
+      return { width, height: 2 * Math.round(width * track.displayHeight / track.displayWidth / 2), fit: 'cover' };
+    };
+
+    async function reencode(url) {
+      const mb = await lib();
+      const input = new mb.Input({ source: new mb.UrlSource(url), formats: mb.ALL_FORMATS });
+      const output = new mb.Output({ format: new mb.Mp4OutputFormat({ fastStart: 'in-memory' }), target: new mb.BufferTarget() });
+      const conversion = await mb.Conversion.init({
+        input, output, showWarnings: false,
+        video: track => ({ ...fitWidth(track, 1600), codec: 'avc', keyFrameInterval: 0.25, quality: mb.QUALITY_MEDIUM }),
+        audio: { discard: true },
+      });
+      if (!conversion.isValid) throw new Error(conversion.discardedTracks.map(t => t.reason).join(', '));
+      // give up if it stops moving for 15 s
+      let moved = Date.now();
+      conversion.onProgress = () => { moved = Date.now(); };
+      const watch = setInterval(() => { if (Date.now() - moved > 15000) conversion.cancel(); }, 1000);
+      try { await conversion.execute(); } finally { clearInterval(watch); }
+      if (conversion.state !== 'done') throw new Error('conversion stalled');
+      return new Blob([output.target.buffer], { type: 'video/mp4' });
+    }
+
+    // Every frame as a JPEG, for browsers that decode video but can't encode it
+    async function stills(url) {
+      const mb = await lib();
+      const input = new mb.Input({ source: new mb.UrlSource(url), formats: mb.ALL_FORMATS });
+      const track = await input.getPrimaryVideoTrack();
+      if (!track) throw new Error('no video track');
+      const frames = [];
+      for await (const { canvas } of new mb.CanvasSink(track, { ...fitWidth(track, 960), poolSize: 1 }).canvases()) {
+        frames.push(await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.8 }));
+      }
+      return frames;
+    }
+  `;
+
+  // Bytes from–to of a file by range request; from the start of the body if
+  // the server ignores ranges
+  async function fileBytes(url, from, to) {
+    const ctl = new AbortController();
+    const res = await fetch(url, { headers: { Range: `bytes=${from}-${to}` }, signal: ctl.signal });
+    if (res.status === 206) return new Uint8Array(await res.arrayBuffer());
+    if (!res.ok) throw new Error(`${res.status} ${url}`);
+    const reader = res.body.getReader(), parts = [];
+    let have = 0;
+    while (have <= to) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      parts.push(value);
+      have += value.length;
+    }
+    ctl.abort();
+    const all = new Uint8Array(have);
+    parts.reduce((at, p) => (all.set(p, at), at + p.length), 0);
+    return all.subarray(from, to + 1);
+  }
+
+  // Longest stretch between keyframes in an MP4's video track, in seconds,
+  // from its sample tables; null when the file can't be read that way
+  async function keyframeGap(url) {
+    const u32 = (b, i) => ((b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]) >>> 0;
+    const type = (b, i) => String.fromCharCode(b[i], b[i + 1], b[i + 2], b[i + 3]);
+    let pos = 0, moov = null;
+    for (let n = 0; n < 16 && !moov; n++) { // top-level boxes, by their headers
+      const h = await fileBytes(url, pos, pos + 15);
+      if (h.length < 8) return null;
+      let size = u32(h, 0);
+      if (size === 1) size = u32(h, 8) * 2 ** 32 + u32(h, 12);
+      if (size < 8) return null;
+      if (type(h, 4) === 'moov') moov = await fileBytes(url, pos, pos + size - 1);
+      pos += size;
+    }
+    if (!moov) return null;
+    const kids = (s, e) => {
+      const out = {};
+      for (let i = s; i + 8 <= e;) {
+        const size = u32(moov, i);
+        if (size < 8) break;
+        (out[type(moov, i + 4)] = out[type(moov, i + 4)] || []).push([i + 8, i + size]);
+        i += size;
+      }
+      return out;
+    };
+    const top = kids(8, moov.length);
+    if (top.mvex) return null; // fragmented: the keyframes are in the fragments
+    for (const [s, e] of top.trak || []) {
+      const mdia = kids(s, e).mdia;
+      const m = mdia && kids(...mdia[0]);
+      if (!m || !m.hdlr || !m.mdhd || !m.minf || type(moov, m.hdlr[0][0] + 8) !== 'vide') continue;
+      const stbl = kids(...m.minf[0]).stbl;
+      const t = stbl && kids(...stbl[0]);
+      if (!t || !t.stsz) return null;
+      const md = m.mdhd[0][0], v1 = moov[md] === 1;
+      const scale = u32(moov, md + (v1 ? 20 : 12));
+      const dur = v1 ? u32(moov, md + 24) * 2 ** 32 + u32(moov, md + 28) : u32(moov, md + 16);
+      const count = u32(moov, t.stsz[0][0] + 8);
+      if (!scale || !count) return null;
+      if (!t.stss) return 0; // no sync table: every frame is a keyframe
+      const ss = t.stss[0][0];
+      let prev = 1, gap = 0;
+      for (let i = 0, n = u32(moov, ss + 4); i < n; i++) {
+        const k = u32(moov, ss + 8 + i * 4);
+        gap = Math.max(gap, k - prev);
+        prev = k;
+      }
+      gap = Math.max(gap, count + 1 - prev);
+      return gap * dur / scale / count;
+    }
+    return null;
+  }
+
+  // One job per file and one worker for the page's lifetime, so Framer
+  // remounting the component doesn't start a conversion over
+  const scrub = window.tcScrollVideos || (window.tcScrollVideos = { jobs: new Map(), worker: null, waiting: new Map() });
+
+  function inWorker(url, keep) {
+    if (!scrub.worker) {
+      scrub.worker = new Worker(URL.createObjectURL(new Blob([SCRUB_WORKER], { type: 'text/javascript' })), { type: 'module' });
+      scrub.worker.onmessage = ({ data }) => {
+        const w = scrub.waiting.get(data.url);
+        scrub.waiting.delete(data.url);
+        if (data.error) w.reject(new Error(data.error)); else w.resolve(data);
+      };
+      scrub.worker.onerror = e => {
+        scrub.waiting.forEach(w => w.reject(e));
+        scrub.waiting.clear();
+      };
+    }
+    return new Promise((resolve, reject) => {
+      scrub.waiting.set(url, { resolve, reject });
+      scrub.worker.postMessage({ url, keep });
+    });
+  }
+
+  // What a scroll video shows: the upload itself when it seeks quickly, else
+  // the browser's re-encode, else its frames as stills; the upload anyway if
+  // none of that works here
+  function scrubFile(url, keep) {
+    if (!scrub.jobs.has(url)) scrub.jobs.set(url, (async () => {
+      const gap = await keyframeGap(url).catch(() => null);
+      if (gap !== null && gap <= SCRUB_MAX_GAP) return { url };
+      try {
+        const file = await inWorker(url, keep);
+        return file.blob ? { url: URL.createObjectURL(file.blob) } : { frames: file.frames };
+      } catch (err) {
+        console.warn('Scroll video plays as uploaded:', err);
+        return { url };
+      }
+    })());
+    return scrub.jobs.get(url);
+  }
+
+  // Sets a scroll video up and returns seek(f), which shows the frame f (0–1)
+  // of the way through. Until the file is ready it does nothing and the
+  // poster shows.
+  function scrollVideo(video) {
+    let seek = () => {};
+    const source = video && video.querySelector('source');
+    if (source && source.src) {
+      const keep = $$('.hero__video source, .site__video source').map(e => e.src);
+      scrubFile(source.src, keep).then(file => {
+        if (!video.isConnected) return;
+        seek = file.frames ? stillsSeek(video, file.frames) : videoSeek(video, file.url, source.src);
+      });
+    }
+    return f => seek(f);
+  }
+
+  // Seeks are queued one at a time, so a fast scroll doesn't pile them up
+  function videoSeek(video, url, upload) {
+    video.preload = 'auto';
+    if (url !== upload) video.src = url; // src wins over the <source>
+    else video.load();
+    return f => {
+      if (!video.duration || video.seeking) return;
+      const t = f * (video.duration - 0.05);
+      if (Math.abs(video.currentTime - t) > 1 / 30) video.currentTime = t;
+    };
+  }
+
+  // Draws the frame on a canvas that takes the video's place. It has the
+  // video's class, so the same box and object-fit, and follows the video's
+  // transform. The video stays until the first frame is drawn.
+  function stillsSeek(video, frames) {
+    const canvas = document.createElement('canvas');
+    canvas.className = video.className;
+    canvas.hidden = true;
+    if (video.hasAttribute('aria-label')) {
+      canvas.setAttribute('role', 'img');
+      canvas.setAttribute('aria-label', video.getAttribute('aria-label'));
+    } else {
+      canvas.setAttribute('aria-hidden', 'true');
+    }
+    video.after(canvas);
+    const ctx = canvas.getContext('2d');
+    let shown = -1, busy = false;
+    return f => {
+      canvas.style.transform = video.style.transform;
+      const i = Math.round(clamp(f) * (frames.length - 1));
+      if (i === shown || busy) return;
+      busy = true;
+      createImageBitmap(frames[i]).then(bmp => {
+        if (canvas.width !== bmp.width || canvas.height !== bmp.height) {
+          canvas.width = bmp.width;
+          canvas.height = bmp.height;
+        }
+        ctx.drawImage(bmp, 0, 0);
+        bmp.close();
+        shown = i;
+        canvas.hidden = false;
+        video.hidden = true;
+      }).catch(() => {}).then(() => { busy = false; });
+    };
+  }
+
+  /* ---------------------------------------------------------------------- */
   /* HERO                                                                    */
   /* ---------------------------------------------------------------------- */
   const hero = $('.hero');
@@ -303,11 +590,8 @@
 
   // The hero video follows the scroll: it ends in white cloud just as the
   // hero hands over to the white section below
-  tickers.push(() => {
-    if (!heroVideo || !heroVideo.duration || heroVideo.seeking) return;
-    const t = range(heroScene.sp, 0.08, 1) * (heroVideo.duration - 0.05);
-    if (Math.abs(heroVideo.currentTime - t) > 1 / 30) heroVideo.currentTime = t;
-  });
+  const heroSeek = scrollVideo(heroVideo);
+  tickers.push(() => heroSeek(range(heroScene.sp, 0.08, 1)));
 
   /* ---------------------------------------------------------------------- */
   /* CLOCK — rule turns counter-clockwise and wipes text A into text B       */
@@ -532,13 +816,9 @@
     siteLabel.style.transform = `translate3d(0, ${f2((1 - d) * 14 * U)}px, 0)`;
   }, 0.1);
 
-  // Video progress follows the scroll. Seeks are queued one at a time, so a
-  // fast scroll doesn't pile them up; until the file loads the poster shows.
-  tickers.push(() => {
-    if (!siteScene.live || !siteVideo.duration || siteVideo.seeking) return;
-    const t = siteVideoT * (siteVideo.duration - 0.05);
-    if (Math.abs(siteVideo.currentTime - t) > 1 / 30) siteVideo.currentTime = t;
-  });
+  // Video progress follows the scroll; until the file is ready the poster shows
+  const siteSeek = scrollVideo(siteVideo);
+  tickers.push(() => { if (siteScene.live) siteSeek(siteVideoT); });
 
   /* ---------------------------------------------------------------------- */
   /* SUSTAINABILITY → INNOVATION — one pinned 2×2 grid. The stat columns     */
